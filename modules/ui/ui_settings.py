@@ -47,14 +47,16 @@ def create_settings():
         with gr.Row():
             with gr.Column():
                 gr.Markdown(t("# UI settings"))
-                image_number = gr.Number(label=t("Image Number"), interactive=True, value=settings.default_settings.get("image_number", 1))
-                add_setting("image_number", image_number)
-                image_number_max = gr.Number(label=t("Image Number Max"), interactive=True, value=settings.default_settings.get("image_number_max", 50))
-                add_setting("image_number_max", image_number_max)
-                seed_random = gr.Checkbox(label=t("Random Seed"), interactive=True, value=settings.default_settings.get("seed_random", True))
-                add_setting("seed_random", seed_random)
-                seed = gr.Number(label=t("Seed"), interactive=True, value=settings.default_settings.get("seed", -1))
-                add_setting("seed", seed)
+                with gr.Row():
+                    image_number = gr.Number(label=t("Image Number"), interactive=True, value=settings.default_settings.get("image_number", 1))
+                    add_setting("image_number", image_number)
+                    image_number_max = gr.Number(label=t("Image Number Max"), interactive=True, value=settings.default_settings.get("image_number_max", 50))
+                    add_setting("image_number_max", image_number_max)
+                with gr.Row():
+                    seed = gr.Number(label=t("Seed"), interactive=True, value=settings.default_settings.get("seed", -1))
+                    add_setting("seed", seed)
+                    seed_random = gr.Checkbox(label=t("Random Seed"), interactive=True, value=settings.default_settings.get("seed_random", True))
+                    add_setting("seed_random", seed_random)
                 style = gr.Dropdown(
                     label=t("Style Selection"),
                     multiselect=True,
@@ -70,6 +72,8 @@ def create_settings():
                 add_setting("prompt", prompt)
                 negative_prompt = gr.Textbox(label=t("Negative Prompt"), interactive=True, value=settings.default_settings.get("negative_prompt", ""))
                 add_setting("negative_prompt", negative_prompt)
+                auto_negative_prompt = gr.Checkbox(label=t("Auto Negative Prompt"), interactive=True, value=settings.default_settings.get("auto_negative_prompt", False))
+                add_setting("auto_negative_prompt", auto_negative_prompt)
                 performance = gr.Dropdown(
                     label=t("Performance"),
                     interactive=True,
@@ -84,6 +88,14 @@ def create_settings():
                     value=settings.default_settings.get("resolution", "1344x768 (16:9)"),
                 )
                 add_setting("resolution", resolution)
+
+                with gr.Row():
+                    lora_min = gr.Number(label=t("LoRA weight min"), interactive=True, value=settings.default_settings.get("lora_min", 0))
+                    add_setting("lora_min", lora_min)
+                    lora_max = gr.Number(label=t("LoRA weight max"), interactive=True, value=settings.default_settings.get("lora_max", 2))
+                    add_setting("lora_max", lora_max)
+
+                gr.Markdown(t("# Models to load at startup"))
                 base_model = gr.Dropdown(
                     label=t("Base Model"),
                     interactive=True,
@@ -91,7 +103,6 @@ def create_settings():
                     value=settings.default_settings.get("base_model", "sd_xl_base_1.0_0.9vae.safetensors"),
                 )
                 add_setting("base_model", base_model)
-
                 with gr.Row():
                     lora_1_model = gr.Dropdown(
                         label=t("LoRA {id} Model", mapping={'id': 1}),
@@ -144,8 +155,6 @@ def create_settings():
                 add_setting("lora_4_weight", lora_4_weight)
                 add_setting("lora_5_weight", lora_5_weight)
 
-                auto_negative_prompt = gr.Checkbox(label=t("Auto Negative Prompt"), interactive=True, value=settings.default_settings.get("auto_negative_prompt", False))
-                add_setting("auto_negative_prompt", auto_negative_prompt)
             with gr.Column():
                 gr.Markdown(t("# One Button Prompt"))
                 OBP_preset = gr.Textbox(label=t("OBP Preset"), value=settings.default_settings.get("OBP_preset", "Standard"))
