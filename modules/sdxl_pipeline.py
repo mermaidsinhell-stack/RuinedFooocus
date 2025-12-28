@@ -597,7 +597,7 @@ class pipeline:
             input_image = torch.from_numpy(input_image)[None,]
             megapixels=float(gen_data["width"])*float(gen_data["height"])/(1024*1024)
             input_image = ImageScaleToTotalPixels().execute(
-                image=input_image, upscale_method="bicubic", megapixels=megapixels
+                image=input_image, upscale_method="bicubic", megapixels=megapixels, resolution_steps=1
             )[0]
             input_images = 1 # "Counter" for the single input-image we have. (for now)
 
