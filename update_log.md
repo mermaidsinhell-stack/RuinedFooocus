@@ -1,3 +1,6 @@
+###
+* Gradio 6.2
+
 ### 25.12.20
 * NewBie Image support
 
