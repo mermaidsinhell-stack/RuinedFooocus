@@ -14,7 +14,7 @@ def create_image_gallery():
                     label=t("Images"),
                     show_label=False,
                     columns=[4],
-                    height="600px",
+                    height=600,
                     object_fit="contain",
                     value=browser.load_images(1)[0],
                 )
