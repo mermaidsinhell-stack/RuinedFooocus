@@ -9,6 +9,16 @@ os.chdir(root)
 offline = os.environ.get("RF_OFFLINE") == "1" or "--offline" in sys.argv
 
 if not offline:
+     from modules.launch_util import (run, python)
+
+     requirements_file = "requirements_versions.txt"
+     run(
+         f'"{python}" -m pip install -r "{requirements_file}"',
+         "Check pre-requirements",
+         "Couldn't check pre-reqs",
+         live=False,
+     )
+
     bupdated = False
     try:
         import pygit2
