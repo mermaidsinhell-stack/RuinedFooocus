@@ -148,7 +148,8 @@ def apply_style(style, prompt, negative_prompt, lora_keywords):
     if bFlufferizer:
         output_prompt = prompt_expansion.expand_prompt(output_prompt)
 
-    output_prompt = output_prompt.replace("{lora_keywords}", lora_keywords)
+    if lora_keywords is not None:
+        output_prompt = output_prompt.replace("{lora_keywords}", lora_keywords)
     output_negative_prompt += ", " + negative_prompt
 
     return output_prompt, output_negative_prompt
