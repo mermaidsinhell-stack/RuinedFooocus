@@ -74,6 +74,11 @@
         "path": "path_vae",
         "filename": "pig_wan_2.2_vae_fp32-f16.gguf"
     },
+    "vae/wan2.2_vae.safetensors": {
+        "url": "https://huggingface.co/Chroma111/general-models/resolve/main/wan/wan2.2_vae.safetensors",
+	"path": "path_vae",
+        "filename": "wan2.2_vae.safetensors"
+    },
     "vae/pixart_sigma_vae_fp16.safetensors": {
         "url": "https://huggingface.co/calcuis/pixart/resolve/main/pixart_sigma_vae_fp16.safetensors",
         "path": "path_vae",

@@ -135,8 +135,7 @@ class pipeline:
                         latent_format = comfy.latent_formats.Wan22()
                         self.latent_rgb_factors = latent_format.latent_rgb_factors
                         self.latent_rgb_factors_bias = latent_format.latent_rgb_factors_bias
-                        # https://huggingface.co/calcuis/wan2-gguf/resolve/main/pig_wan2_vae_fp32-f16.gguf
-                        vae_name = settings.default_settings.get("vae_wan", "pig_wan_2.2_vae_fp32-f16.gguf")
+                        vae_name = settings.default_settings.get("vae_wan_22", "wan2.2_vae.safetensors")
                     else:
                         print(f"ERROR: Not a Wan Video model?")
                         unet = None

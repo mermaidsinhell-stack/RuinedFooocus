@@ -284,6 +284,8 @@ def create_settings():
                 add_setting("vae_sdxl", vae_sdxl)
                 vae_wan = gr.Dropdown(label="WAN 2.1 VAE", interactive=True, choices=[None]+path_manager.get_folder_list("vae"), value=settings.default_settings.get("vae_wan", None),)
                 add_setting("vae_wan", vae_wan)
+                vae_wan_22 = gr.Dropdown(label="WAN 2.2 VAE", interactive=True, choices=[None]+path_manager.get_folder_list("vae"), value=settings.default_settings.get("vae_wan_22", None),)
+                add_setting("vae_wan_22", vae_wan_22)
 
         with gr.Row(), gr.Group():
             ui_settings_name = gr.Text(
