@@ -216,9 +216,14 @@ def process_wildcards(wildcard_text, directory="wildcards"):
         else:
             random_choice = random.choice(placeholder_choices[placeholder])
 
-        wildcard_text = re.sub(
-            rf"__{placeholder}__", random_choice, wildcard_text, count=1
-        )
+        try:
+            wildcard_text = re.sub(
+                rf"__{placeholder}__", random_choice, wildcard_text, count=1
+            )
+        except Exception as e
+            print(f"ERROR: {e}")
+            print(f"    placeholder: {placeholder}")
+            print(f"  random_choice: {random_choice}")
 
     return wildcard_text
 
