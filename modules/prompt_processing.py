@@ -220,7 +220,7 @@ def process_wildcards(wildcard_text, directory="wildcards"):
             wildcard_text = re.sub(
                 rf"__{placeholder}__", random_choice, wildcard_text, count=1
             )
-        except Exception as e
+        except Exception as e:
             print(f"ERROR: {e}")
             print(f"    placeholder: {placeholder}")
             print(f"  random_choice: {random_choice}")
