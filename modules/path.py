@@ -66,12 +66,17 @@ class PathManager:
 
     def set_settings_path(self, subfolder=None):
         self.subfolder = subfolder
+        user_data = os.environ.get("RF_USER_DATA")
         if self.subfolder in [None, "", "default"]:
-            path = Path("settings/paths.json")
+            rel = Path("settings/paths.json")
         else:
-            path = Path(f"settings/{self.subfolder}/paths.json")
+            rel = Path(f"settings/{self.subfolder}/paths.json")
+        if user_data:
+            path = Path(user_data) / rel
+        else:
+            path = rel
         if not path.parent.exists():
-            path.parent.mkdir()
+            path.parent.mkdir(parents=True, exist_ok=True)
         self.settings_path = path
 
     def load_paths(self):
@@ -136,7 +141,12 @@ class PathManager:
         return rc
 
     def get_abspath(self, path):
-        return Path(path) if Path(path).is_absolute() else Path(__file__).parent / path
+        if Path(path).is_absolute():
+            return Path(path)
+        user_data = os.environ.get("RF_USER_DATA")
+        if user_data:
+            return Path(user_data) / path
+        return Path(__file__).parent / path
 
     def get_model_filenames(self, folder_path, cache=None, isLora=False):
         folder_path = Path(folder_path)

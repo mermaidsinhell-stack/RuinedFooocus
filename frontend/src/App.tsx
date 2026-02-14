@@ -78,6 +78,7 @@ export default function App() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [cnPresets, setCnPresets] = useState<ControlNetPreset[]>([])
   const [inpaintEnabled, setInpaintEnabled] = useState(false)
+  const [originalInputImage, setOriginalInputImage] = useState<string | null>(null)
 
   // Apply server default settings once loaded
   const defaultsApplied = useRef(false)
@@ -337,42 +338,52 @@ export default function App() {
           </Accordion>
 
           <Accordion title="PowerUp">
-            <ControlNetPanel
-              presets={cnPresets}
-              types={settings?.controlnet_types ?? []}
-              upscalers={settings?.upscalers ?? []}
-              cnSelection={params.cn_selection ?? 'None'}
-              cnType={params.cn_type ?? 'Canny'}
-              cnEdgeLow={params.cn_edge_low}
-              cnEdgeHigh={params.cn_edge_high}
-              cnStart={params.cn_start}
-              cnStop={params.cn_stop}
-              cnStrength={params.cn_strength}
-              cnUpscale={params.cn_upscale}
-              onSelectionChange={(val) => setParams((p) => ({ ...p, cn_selection: val }))}
-              onTypeChange={(val) => setParams((p) => ({ ...p, cn_type: val }))}
-              onEdgeLowChange={(val) => setParams((p) => ({ ...p, cn_edge_low: val }))}
-              onEdgeHighChange={(val) => setParams((p) => ({ ...p, cn_edge_high: val }))}
-              onStartChange={(val) => setParams((p) => ({ ...p, cn_start: val }))}
-              onStopChange={(val) => setParams((p) => ({ ...p, cn_stop: val }))}
-              onStrengthChange={(val) => setParams((p) => ({ ...p, cn_strength: val }))}
-              onUpscaleChange={(val) => setParams((p) => ({ ...p, cn_upscale: val }))}
-              onPresetsUpdate={setCnPresets}
+            <ImageUpload
+              image={params.input_image}
+              onImageChange={(val) => {
+                setOriginalInputImage(val)
+                setParams((p) => ({ ...p, input_image: val }))
+              }}
             />
             <div className="mt-3">
-              <ImageUpload
-                image={params.input_image}
-                onImageChange={(val) => setParams((p) => ({ ...p, input_image: val }))}
+              <ControlNetPanel
+                presets={cnPresets}
+                types={settings?.controlnet_types ?? []}
+                upscalers={settings?.upscalers ?? []}
+                cnSelection={params.cn_selection ?? 'None'}
+                cnType={params.cn_type ?? 'Canny'}
+                cnEdgeLow={params.cn_edge_low}
+                cnEdgeHigh={params.cn_edge_high}
+                cnStart={params.cn_start}
+                cnStop={params.cn_stop}
+                cnStrength={params.cn_strength}
+                cnUpscale={params.cn_upscale}
+                onSelectionChange={(val) => setParams((p) => ({ ...p, cn_selection: val }))}
+                onTypeChange={(val) => setParams((p) => ({ ...p, cn_type: val }))}
+                onEdgeLowChange={(val) => setParams((p) => ({ ...p, cn_edge_low: val }))}
+                onEdgeHighChange={(val) => setParams((p) => ({ ...p, cn_edge_high: val }))}
+                onStartChange={(val) => setParams((p) => ({ ...p, cn_start: val }))}
+                onStopChange={(val) => setParams((p) => ({ ...p, cn_stop: val }))}
+                onStrengthChange={(val) => setParams((p) => ({ ...p, cn_strength: val }))}
+                onUpscaleChange={(val) => setParams((p) => ({ ...p, cn_upscale: val }))}
+                onPresetsUpdate={setCnPresets}
               />
             </div>
             <div className="mt-3">
               <InpaintCanvas
-                sourceImage={params.input_image}
+                sourceImage={originalInputImage}
                 enabled={inpaintEnabled}
-                onEnabledChange={setInpaintEnabled}
+                onEnabledChange={(enabled) => {
+                  setInpaintEnabled(enabled)
+                  if (!enabled && originalInputImage) {
+                    setParams((p) => ({ ...p, input_image: originalInputImage }))
+                  }
+                }}
                 onMaskChange={(composite) => {
                   if (composite) {
                     setParams((p) => ({ ...p, input_image: composite }))
+                  } else if (originalInputImage) {
+                    setParams((p) => ({ ...p, input_image: originalInputImage }))
                   }
                 }}
               />

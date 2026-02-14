@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -65,29 +66,48 @@ def _info_from_char(file: Path) -> dict | None:
     }
 
 
+def _get_chatbot_dirs() -> list[Path]:
+    """Return chatbot directories to search, including user data if set."""
+    dirs = []
+    user_data = os.environ.get("RF_USER_DATA")
+    if user_data:
+        ud = Path(user_data) / "chatbots"
+        if ud.exists():
+            dirs.append(ud)
+    local = Path("chatbots")
+    if local.exists():
+        dirs.append(local)
+    return dirs
+
+
 def _get_assistants() -> list[tuple[str, str]]:
     """List all available chatbot assistants (ported from ui_llama_chat.py)."""
     names = []
-    folder_path = Path("chatbots")
-    if not folder_path.exists():
-        return names
+    seen_names = set()
 
-    for path in folder_path.rglob("*"):
-        if path.is_dir():
-            try:
-                with open(path / "info.json", "r", encoding="utf-8") as f:
-                    info = json.load(f)
-                names.append((info["name"], str(path)))
-            except Exception:
-                pass
-        else:
-            if path.suffix.lower() == ".png" and not (path.parent / "info.json").exists():
+    for folder_path in _get_chatbot_dirs():
+        for path in folder_path.rglob("*"):
+            if path.is_dir():
                 try:
-                    character = _info_from_char(path)
-                    if character is not None:
-                        names.append((character.get("name", "???"), str(path)))
+                    with open(path / "info.json", "r", encoding="utf-8") as f:
+                        info = json.load(f)
+                    name = info["name"]
+                    if name not in seen_names:
+                        names.append((name, str(path)))
+                        seen_names.add(name)
                 except Exception:
                     pass
+            else:
+                if path.suffix.lower() == ".png" and not (path.parent / "info.json").exists():
+                    try:
+                        character = _info_from_char(path)
+                        if character is not None:
+                            name = character.get("name", "???")
+                            if name not in seen_names:
+                                names.append((name, str(path)))
+                                seen_names.add(name)
+                    except Exception:
+                        pass
 
     names.sort(key=lambda x: x[0].casefold())
     return names
@@ -95,10 +115,13 @@ def _get_assistants() -> list[tuple[str, str]]:
 
 def _select_assistant(path_str: str) -> dict:
     """Load full assistant info by path (ported from ui_llama_chat.py)."""
-    # Validate path is within the chatbots directory
-    safe_base = Path("chatbots").resolve()
+    # Validate path is within an allowed chatbots directory
     character = Path(path_str).resolve()
-    if not str(character).startswith(str(safe_base)):
+    allowed_bases = [Path("chatbots").resolve()]
+    user_data = os.environ.get("RF_USER_DATA")
+    if user_data:
+        allowed_bases.append((Path(user_data) / "chatbots").resolve())
+    if not any(str(character).startswith(str(base)) for base in allowed_bases):
         raise ValueError(f"Invalid assistant path: must be within chatbots/")
     try:
         if character.is_dir():
@@ -132,6 +155,16 @@ def _avatar_to_url(avatar_path: str) -> str:
     """Convert a local avatar path to an API-accessible URL."""
     try:
         p = Path(avatar_path)
+        # Check if avatar is in user data chatbots
+        user_data = os.environ.get("RF_USER_DATA")
+        if user_data:
+            ud_chatbots = Path(user_data) / "chatbots"
+            try:
+                rel = p.relative_to(ud_chatbots)
+                return f"/api/chatbot-avatars/user/{rel}"
+            except ValueError:
+                pass
+        # Check if avatar is in local chatbots
         if str(p).startswith("chatbots"):
             return f"/api/chatbot-avatars/{p.relative_to('chatbots')}"
     except (ValueError, TypeError):
@@ -153,10 +186,13 @@ async def get_llama_presets():
 @router.post("/llama/rewrite")
 async def llama_rewrite(req: LlamaRewriteRequest):
     """Rewrite a prompt using a llama system prompt (blocking, runs in executor)."""
-    # Validate system_file is within the llamas directory
-    safe_base = Path("llamas").resolve()
+    # Validate system_file is within an allowed llamas directory
     sys_path = Path(req.system_file).resolve()
-    if not str(sys_path).startswith(str(safe_base)):
+    allowed_bases = [Path("llamas").resolve()]
+    user_data = os.environ.get("RF_USER_DATA")
+    if user_data:
+        allowed_bases.append((Path(user_data) / "llamas").resolve())
+    if not any(str(sys_path).startswith(str(base)) for base in allowed_bases):
         raise HTTPException(status_code=400, detail="Invalid system file path")
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, run_llama, req.system_file, req.prompt)

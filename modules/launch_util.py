@@ -21,7 +21,7 @@ index_url = os.environ.get("INDEX_URL", "")
 
 modules_path = Path(__file__).resolve().parent
 script_path = modules_path.parent
-dir_repos = "repositories"
+dir_repos = os.environ.get("RF_REPOSITORIES_DIR", "repositories")
 
 re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
 
@@ -49,6 +49,9 @@ def git_clone(url, dir, name, hash=None):
 
 
 def repo_dir(name):
+    repos = Path(dir_repos)
+    if repos.is_absolute():
+        return str(repos / name)
     return str(Path(script_path) / dir_repos / name)
 
 

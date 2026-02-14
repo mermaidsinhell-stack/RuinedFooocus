@@ -15,13 +15,26 @@ import xmltodict
 import modules.async_worker as worker
 
 def llama_names():
+        import os
         names = []
-        folder_path = Path("llamas")
-        for path in folder_path.rglob("*"):
-            if path.suffix.lower() in [".txt"]:
-                f = open(path, "r", encoding='utf-8')
-                name = f.readline().strip()
-                names.append((name, str(path)))
+        seen = set()
+        folders = []
+        user_data = os.environ.get("RF_USER_DATA")
+        if user_data:
+            ud = Path(user_data) / "llamas"
+            if ud.exists():
+                folders.append(ud)
+        folders.append(Path("llamas"))
+        for folder_path in folders:
+            if not folder_path.exists():
+                continue
+            for path in folder_path.rglob("*"):
+                if path.suffix.lower() in [".txt"]:
+                    f = open(path, "r", encoding='utf-8')
+                    name = f.readline().strip()
+                    if name not in seen:
+                        names.append((name, str(path)))
+                        seen.add(name)
         names.sort(key=lambda x: x[0].casefold())
         return names
 

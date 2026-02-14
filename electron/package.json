@@ -1,0 +1,91 @@
+{
+  "name": "ruinedfooocus",
+  "version": "1.0.0",
+  "description": "RuinedFooocus - AI Image Generation",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron .",
+    "dist:win": "npm run build && electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "author": "RuinedFooocus",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.0",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.0"
+  },
+  "build": {
+    "appId": "com.ruinedfooocus.app",
+    "productName": "RuinedFooocus",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "allowToChangeInstallationDirectory": false
+    },
+    "extraResources": [
+      {
+        "from": "resources/python",
+        "to": "python",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "..",
+        "to": "backend",
+        "filter": [
+          "**/*.py",
+          "**/*.json",
+          "**/*.txt",
+          "**/*.csv",
+          "**/*.default",
+          "**/*.html",
+          "frontend/dist/**",
+          "wildcards/**",
+          "wildcards_official/**",
+          "chatbots/**",
+          "llamas/**",
+          "presets/**",
+          "random_prompt/**",
+          "settings/**",
+          "modules/**",
+          "api/**",
+          "pip/**",
+          "!models/**",
+          "!outputs/**",
+          "!cache/**",
+          "!repositories/**",
+          "!.git/**",
+          "!node_modules/**",
+          "!frontend/node_modules/**",
+          "!frontend/src/**",
+          "!electron/**",
+          "!__pycache__/**",
+          "!**/__pycache__/**"
+        ]
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "OWNER",
+      "repo": "RuinedFooocus"
+    }
+  }
+}

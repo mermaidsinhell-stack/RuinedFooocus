@@ -43,6 +43,9 @@ def process_wildcards(wildcard_text, directory="wildcards"):
     placeholder_choices = {}  # Store random choices for each placeholder
     official_directory = "wildcards_official"
     directories = []
+    user_data = os.environ.get("RF_USER_DATA")
+    if user_data:
+        directories.append(os.path.join(user_data, directory))
     directories.append(directory)
     directories.append(official_directory)
 

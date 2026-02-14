@@ -93,7 +93,16 @@ if Path(lora_cache).is_dir():
         name="thumbnails_loras",
     )
 
-# Chatbot avatars
+# Chatbot avatars (user data takes priority)
+_user_data = os.environ.get("RF_USER_DATA")
+if _user_data:
+    _user_chatbots = Path(_user_data) / "chatbots"
+    if _user_chatbots.is_dir():
+        app.mount(
+            "/api/chatbot-avatars/user",
+            StaticFiles(directory=str(_user_chatbots)),
+            name="chatbot_avatars_user",
+        )
 _chatbots_dir = Path("chatbots")
 if _chatbots_dir.is_dir():
     app.mount(
