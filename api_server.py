@@ -21,6 +21,12 @@ import shared
 from api.routes.generate import router as generate_router
 from api.routes.models import router as models_router
 from api.routes.settings import router as settings_router
+from api.routes.controlnet import router as controlnet_router
+from api.routes.obp import router as obp_router
+from api.routes.browser import router as browser_router
+from api.routes.evolve import router as evolve_router
+from api.routes.llama import router as llama_router
+from modules.imagebrowser import ImageBrowser
 
 app = FastAPI(
     title="RuinedFooocus API",
@@ -47,6 +53,15 @@ app.add_middleware(
 app.include_router(generate_router, prefix="/api")
 app.include_router(models_router, prefix="/api")
 app.include_router(settings_router, prefix="/api")
+app.include_router(controlnet_router, prefix="/api")
+app.include_router(obp_router, prefix="/api")
+app.include_router(browser_router, prefix="/api")
+app.include_router(evolve_router, prefix="/api")
+app.include_router(llama_router, prefix="/api")
+
+# Ensure browser singleton is available for the API
+if "browser" not in shared.shared_cache:
+    shared.shared_cache["browser"] = ImageBrowser()
 
 # ---------------------------------------------------------------------------
 # Static file mounts -- order matters: more specific paths first
@@ -76,6 +91,15 @@ if Path(lora_cache).is_dir():
         "/api/thumbnails/loras",
         StaticFiles(directory=str(lora_cache)),
         name="thumbnails_loras",
+    )
+
+# Chatbot avatars
+_chatbots_dir = Path("chatbots")
+if _chatbots_dir.is_dir():
+    app.mount(
+        "/api/chatbot-avatars",
+        StaticFiles(directory=str(_chatbots_dir)),
+        name="chatbot_avatars",
     )
 
 # ---------------------------------------------------------------------------

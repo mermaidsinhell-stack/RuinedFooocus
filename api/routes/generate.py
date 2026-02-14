@@ -67,6 +67,7 @@ def _build_gen_data(req: GenerateRequest) -> dict:
         "cn_start": req.cn_start,
         "cn_stop": req.cn_stop,
         "cn_strength": req.cn_strength,
+        "cn_upscale": req.cn_upscale,
         "image_total": req.image_number,
         "generate_forever": False,
     }

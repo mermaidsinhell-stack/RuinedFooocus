@@ -5,7 +5,7 @@ import { useSettings } from '@/hooks/useSettings'
 import { useModels } from '@/hooks/useModels'
 import { useGenerate } from '@/hooks/useGenerate'
 
-import type { GenerateRequest } from '@/api/types'
+import type { GenerateRequest, ControlNetPreset } from '@/api/types'
 
 import { Button } from '@/components/ui/button'
 import { Accordion } from '@/components/ui/accordion'
@@ -20,6 +20,15 @@ import { GenerationSettings } from '@/components/GenerationSettings'
 import { ResolutionPicker } from '@/components/ResolutionPicker'
 import { StyleSelector } from '@/components/StyleSelector'
 import { SeedControl } from '@/components/SeedControl'
+import { ControlNetPanel } from '@/components/ControlNetPanel'
+import { ImageUpload } from '@/components/ImageUpload'
+import { InpaintCanvas } from '@/components/InpaintCanvas'
+import { OneButtonPrompt } from '@/components/OneButtonPrompt'
+import { EvolvePanel } from '@/components/EvolvePanel'
+import { LlamaRewrite } from '@/components/LlamaRewrite'
+import { ImageBrowserView } from '@/components/ImageBrowserView'
+import { ChatView } from '@/components/ChatView'
+import { SettingsView } from '@/components/SettingsView'
 
 // ---------------------------------------------------------------------------
 // Default generation parameters
@@ -43,14 +52,15 @@ const DEFAULT_PARAMS: GenerateRequest = {
   seed: -1,
   image_number: 1,
   auto_negative_prompt: false,
-  cn_selection: null,
-  cn_type: null,
+  cn_selection: 'None',
+  cn_type: 'Canny',
   input_image: null,
   cn_edge_low: 0.2,
   cn_edge_high: 0.8,
   cn_start: 0,
   cn_stop: 1,
   cn_strength: 1,
+  cn_upscale: 'None',
 }
 
 // ---------------------------------------------------------------------------
@@ -62,9 +72,12 @@ export default function App() {
   const { checkpoints, loras, refresh: refreshModels } = useModels()
   const { isGenerating, progress, images, error: generateError, generate, stop } = useGenerate()
 
+  const [activeTab, setActiveTab] = useState<'generate' | 'browse' | 'chat' | 'settings'>('generate')
   const [params, setParams] = useState<GenerateRequest>(DEFAULT_PARAMS)
   const [randomSeed, setRandomSeed] = useState(true)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [cnPresets, setCnPresets] = useState<ControlNetPreset[]>([])
+  const [inpaintEnabled, setInpaintEnabled] = useState(false)
 
   // Apply server default settings once loaded
   const defaultsApplied = useRef(false)
@@ -94,6 +107,10 @@ export default function App() {
       }))
       if (typeof d.seed_random === 'boolean') {
         setRandomSeed(d.seed_random)
+      }
+      // Initialize CN presets from settings
+      if (settings.controlnet_presets) {
+        setCnPresets(settings.controlnet_presets)
       }
     }
   }, [settings])
@@ -158,14 +175,52 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="border-b border-border px-4 py-2 flex items-center justify-between shrink-0">
+      <header className="border-b border-border px-4 py-2 flex items-center gap-4 shrink-0">
         <h1 className="text-lg font-semibold text-foreground">RuinedFooocus</h1>
+        <div className="flex gap-1">
+          <Button
+            variant={activeTab === 'generate' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('generate')}
+          >
+            Generate
+          </Button>
+          <Button
+            variant={activeTab === 'browse' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('browse')}
+          >
+            Browse
+          </Button>
+          <Button
+            variant={activeTab === 'chat' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('chat')}
+          >
+            Chat
+          </Button>
+          <Button
+            variant={activeTab === 'settings' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('settings')}
+          >
+            Settings
+          </Button>
+        </div>
+        <div className="flex-1" />
         {generateError && (
           <span className="text-xs text-destructive">{generateError}</span>
         )}
       </header>
 
-      {/* Main content - two column layout */}
+      {activeTab === 'browse' ? (
+        <ImageBrowserView />
+      ) : activeTab === 'chat' ? (
+        <ChatView />
+      ) : activeTab === 'settings' ? (
+        <SettingsView settings={settings} checkpoints={checkpoints} loras={loras} />
+      ) : (
+      /* Main content - two column layout */
       <div className="flex-1 flex overflow-hidden">
         {/* Left - Image display */}
         <div className="flex-[3] flex flex-col p-4 gap-4 min-w-0">
@@ -189,6 +244,27 @@ export default function App() {
               setParams((p) => ({ ...p, auto_negative_prompt: val }))
             }
           />
+
+          <LlamaRewrite
+            prompt={params.prompt}
+            onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+          />
+
+          <Accordion title="Evolve">
+            <EvolvePanel
+              prompt={params.prompt}
+              onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+              onTriggerGenerate={handleGenerate}
+            />
+          </Accordion>
+
+          <Accordion title="One Button">
+            <OneButtonPrompt
+              prompt={params.prompt}
+              onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+              onInstantGenerate={handleGenerate}
+            />
+          </Accordion>
 
           <GenerateButton
             isGenerating={isGenerating}
@@ -260,6 +336,49 @@ export default function App() {
             />
           </Accordion>
 
+          <Accordion title="PowerUp">
+            <ControlNetPanel
+              presets={cnPresets}
+              types={settings?.controlnet_types ?? []}
+              upscalers={settings?.upscalers ?? []}
+              cnSelection={params.cn_selection ?? 'None'}
+              cnType={params.cn_type ?? 'Canny'}
+              cnEdgeLow={params.cn_edge_low}
+              cnEdgeHigh={params.cn_edge_high}
+              cnStart={params.cn_start}
+              cnStop={params.cn_stop}
+              cnStrength={params.cn_strength}
+              cnUpscale={params.cn_upscale}
+              onSelectionChange={(val) => setParams((p) => ({ ...p, cn_selection: val }))}
+              onTypeChange={(val) => setParams((p) => ({ ...p, cn_type: val }))}
+              onEdgeLowChange={(val) => setParams((p) => ({ ...p, cn_edge_low: val }))}
+              onEdgeHighChange={(val) => setParams((p) => ({ ...p, cn_edge_high: val }))}
+              onStartChange={(val) => setParams((p) => ({ ...p, cn_start: val }))}
+              onStopChange={(val) => setParams((p) => ({ ...p, cn_stop: val }))}
+              onStrengthChange={(val) => setParams((p) => ({ ...p, cn_strength: val }))}
+              onUpscaleChange={(val) => setParams((p) => ({ ...p, cn_upscale: val }))}
+              onPresetsUpdate={setCnPresets}
+            />
+            <div className="mt-3">
+              <ImageUpload
+                image={params.input_image}
+                onImageChange={(val) => setParams((p) => ({ ...p, input_image: val }))}
+              />
+            </div>
+            <div className="mt-3">
+              <InpaintCanvas
+                sourceImage={params.input_image}
+                enabled={inpaintEnabled}
+                onEnabledChange={setInpaintEnabled}
+                onMaskChange={(composite) => {
+                  if (composite) {
+                    setParams((p) => ({ ...p, input_image: composite }))
+                  }
+                }}
+              />
+            </div>
+          </Accordion>
+
           <Accordion title="Seed">
             <SeedControl
               seed={params.seed}
@@ -270,6 +389,7 @@ export default function App() {
           </Accordion>
         </div>
       </div>
+      )}
     </div>
   )
 }

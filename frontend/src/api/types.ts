@@ -24,6 +24,7 @@ export interface GenerateRequest {
   cn_start: number
   cn_stop: number
   cn_strength: number
+  cn_upscale: string
 }
 
 export interface LoraEntry {
@@ -84,6 +85,168 @@ export interface ResolutionPreset {
   height: number
 }
 
+export interface ControlNetPreset {
+  name: string
+  type: string
+  edge_low?: number | null
+  edge_high?: number | null
+  start?: number | null
+  stop?: number | null
+  strength?: number | null
+  upscaler?: string | null
+}
+
+export interface OBPGenerateRequest {
+  insanitylevel: number
+  subject: string
+  artist: string
+  imagetype: string
+  antistring: string
+  prefixprompt: string
+  suffixprompt: string
+  givensubject: string
+  smartsubject: boolean
+  giventypeofimage: string
+  imagemodechance: number
+  chosengender: string
+  chosensubjectsubtypeobject: string
+  chosensubjectsubtypehumanoid: string
+  chosensubjectsubtypeconcept: string
+  givenoutfit: string
+  obp_preset: string
+  promptenhance: string
+  modeltype: string
+}
+
+export interface OBPPreset {
+  insanitylevel: number
+  subject: string
+  artist: string
+  imagetype: string
+  imagemodechance: number
+  chosengender: string
+  chosensubjectsubtypeobject: string
+  chosensubjectsubtypehumanoid: string
+  chosensubjectsubtypeconcept: string
+  givensubject: string
+  smartsubject: boolean
+  givenoutfit: string
+  prefixprompt: string
+  suffixprompt: string
+  giventypeofimage: string
+  antistring: string
+}
+
+export interface OBPOptions {
+  subjects: string[]
+  artists: string[]
+  imagetypes: string[]
+  genders: string[]
+  model_types: string[]
+  prompt_enhance: string[]
+  subtype_object: string[]
+  subtype_humanoid: string[]
+  subtype_concept: string[]
+  preset_names: string[]
+  presets: Record<string, OBPPreset>
+}
+
+export interface BrowseImageItem {
+  url: string
+  fullpath: string
+  filename: string
+}
+
+export interface BrowseImagesResponse {
+  images: BrowseImageItem[]
+  page: number
+  total_pages: number
+  total_images: number
+  range_text: string
+}
+
+export interface ImageMetadata {
+  raw: Record<string, unknown>
+  formatted: Record<string, unknown>
+  formatted_string: string
+}
+
+export interface UpdateDBResponse {
+  status: string
+  image_count: number
+  message: string
+}
+
+// ---------------------------------------------------------------------------
+// Evolve
+// ---------------------------------------------------------------------------
+
+export interface EvolveMutateRequest {
+  prompt: string
+  button: number
+  mode: string
+  strength: number
+}
+
+export interface EvolveMutateResponse {
+  prompt: string
+  mode: string
+}
+
+// ---------------------------------------------------------------------------
+// Llama / Chat
+// ---------------------------------------------------------------------------
+
+export interface LlamaPreset {
+  name: string
+  file: string
+}
+
+export interface ChatMessage {
+  role: string
+  content: string
+}
+
+export interface AssistantListItem {
+  name: string
+  path: string
+}
+
+export interface AssistantInfo {
+  name: string
+  greeting: string
+  avatar_url: string
+  system: string
+  embed: string
+}
+
+export interface ChatSendRequest {
+  system: string
+  embed: string
+  history: ChatMessage[]
+}
+
+export interface ChatSendResponse {
+  task_id: number
+}
+
+export interface ChatStreamMessage {
+  type: 'stream' | 'complete' | 'error'
+  history?: ChatMessage[]
+  message?: string
+}
+
+export interface PathsData {
+  [key: string]: string | string[]
+}
+
+export interface ModelFilesData {
+  clip: string[]
+  clip_vision: string[]
+  vae: string[]
+  llm: string[]
+}
+
 export interface SettingsData {
   samplers: string[]
   schedulers: string[]
@@ -91,4 +254,7 @@ export interface SettingsData {
   resolutions: ResolutionPreset[]
   styles: StyleInfo[]
   default_settings: Record<string, unknown>
+  controlnet_presets: ControlNetPreset[]
+  controlnet_types: string[]
+  upscalers: string[]
 }

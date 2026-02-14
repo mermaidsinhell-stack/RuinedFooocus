@@ -34,6 +34,7 @@ class GenerateRequest(BaseModel):
     cn_start: float = 0.0
     cn_stop: float = 1.0
     cn_strength: float = 1.0
+    cn_upscale: str = "None"
 
 
 class GenerateResponse(BaseModel):
@@ -72,6 +73,146 @@ class ResolutionInfo(BaseModel):
     height: int
 
 
+class ControlNetPresetInfo(BaseModel):
+    name: str
+    type: str
+    edge_low: Optional[float] = None
+    edge_high: Optional[float] = None
+    start: Optional[float] = None
+    stop: Optional[float] = None
+    strength: Optional[float] = None
+    upscaler: Optional[str] = None
+
+
+class ControlNetPresetSave(BaseModel):
+    name: str
+    type: str
+    edge_low: Optional[float] = None
+    edge_high: Optional[float] = None
+    start: Optional[float] = None
+    stop: Optional[float] = None
+    strength: Optional[float] = None
+    upscaler: Optional[str] = None
+
+
+class OBPGenerateRequest(BaseModel):
+    insanitylevel: int = 5
+    subject: str = "all"
+    artist: str = "all"
+    imagetype: str = "all"
+    antistring: str = ""
+    prefixprompt: str = ""
+    suffixprompt: str = ""
+    givensubject: str = ""
+    smartsubject: bool = True
+    giventypeofimage: str = ""
+    imagemodechance: int = 20
+    chosengender: str = "all"
+    chosensubjectsubtypeobject: str = "all"
+    chosensubjectsubtypehumanoid: str = "all"
+    chosensubjectsubtypeconcept: str = "all"
+    givenoutfit: str = ""
+    obp_preset: str = "Standard"
+    promptenhance: str = "none"
+    modeltype: str = "SDXL"
+
+
+class OBPPresetSave(BaseModel):
+    name: str
+    insanitylevel: int = 5
+    subject: str = "all"
+    artist: str = "all"
+    imagetype: str = "all"
+    imagemodechance: int = 20
+    chosengender: str = "all"
+    chosensubjectsubtypeobject: str = "all"
+    chosensubjectsubtypehumanoid: str = "all"
+    chosensubjectsubtypeconcept: str = "all"
+    givensubject: str = ""
+    smartsubject: bool = True
+    givenoutfit: str = ""
+    prefixprompt: str = ""
+    suffixprompt: str = ""
+    giventypeofimage: str = ""
+    antistring: str = ""
+
+
+class BrowseImageItem(BaseModel):
+    url: str
+    fullpath: str
+    filename: str
+
+
+class BrowseImagesResponse(BaseModel):
+    images: list[BrowseImageItem]
+    page: int
+    total_pages: int
+    total_images: int
+    range_text: str
+
+
+class ImageMetadataResponse(BaseModel):
+    raw: dict
+    formatted: dict
+    formatted_string: str
+
+
+class UpdateDBResponse(BaseModel):
+    status: str
+    image_count: int
+    message: str
+
+
+class EvolveMutateRequest(BaseModel):
+    prompt: str
+    button: int = Field(ge=1, le=9)
+    mode: str = "Tokens"
+    strength: int = Field(default=10, ge=0, le=100)
+
+
+class EvolveMutateResponse(BaseModel):
+    prompt: str
+    mode: str
+
+
+class LlamaPresetInfo(BaseModel):
+    name: str
+    file: str
+
+
+class LlamaRewriteRequest(BaseModel):
+    system_file: str
+    prompt: str
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class AssistantListItem(BaseModel):
+    name: str
+    path: str
+
+
+class AssistantInfo(BaseModel):
+    name: str
+    greeting: str
+    avatar_url: str
+    system: str
+    embed: str
+
+
+class ChatSendRequest(BaseModel):
+    system: str
+    embed: str = "[]"
+    history: list[ChatMessage]
+
+
+class ChatSendResponse(BaseModel):
+    task_id: int
+
+
 class SettingsResponse(BaseModel):
     samplers: list[str]
     schedulers: list[str]
@@ -79,3 +220,26 @@ class SettingsResponse(BaseModel):
     resolutions: list[ResolutionInfo]
     styles: list[StyleInfo]
     default_settings: dict
+    controlnet_presets: list[ControlNetPresetInfo] = Field(default_factory=list)
+    controlnet_types: list[str] = Field(default_factory=list)
+    upscalers: list[str] = Field(default_factory=list)
+
+
+class SettingsSaveRequest(BaseModel):
+    settings: dict = Field(default_factory=dict)
+    paths: Optional[dict] = None
+
+
+class SettingsSaveResponse(BaseModel):
+    status: str
+
+
+class PathsResponse(BaseModel):
+    paths: dict
+
+
+class ModelFilesResponse(BaseModel):
+    clip: list[str] = Field(default_factory=list)
+    clip_vision: list[str] = Field(default_factory=list)
+    vae: list[str] = Field(default_factory=list)
+    llm: list[str] = Field(default_factory=list)

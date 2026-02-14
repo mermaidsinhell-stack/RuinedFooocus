@@ -224,42 +224,48 @@ class ImageBrowser:
         if commit:
             self.sql_conn.commit()
 
+    def _scan_and_rebuild(self) -> Tuple[int, str]:
+        """Core DB rebuild logic. Returns (image_count, status_message)."""
+        if not self.base_path.exists():
+            return 0, f"Folder not found: {self.base_path}"
+
+        image_cnt = 0
+        self.sql_conn.cursor()
+        self.sql_conn.execute("DROP TABLE images")
+        self.sql_conn.commit()
+        self.sql_conn = connect_database()
+        self.sql_conn.cursor()
+
+        # Walk through directory and all subdirectories
+        print("Scanning folder to update DB:")
+        with TimeIt("Update DB"):
+            for folder in [self.base_path] + settings.default_settings.get("archive_folders", []):
+                print(f"    {folder}")
+                for root, _, files in os.walk(folder):
+                    for filename in files:
+                        if filename.lower().endswith((".png", ".gif")):
+                            full_path = Path(root) / filename
+                            rel_path = str(full_path.relative_to(folder))
+                            if filename.lower().endswith(".png"):
+                                metadata = get_png_metadata(str(full_path))
+                            else:
+                                metadata = {}
+                            metadata["file_path"] = rel_path
+
+                            self.add_image(str(full_path), str(rel_path), metadata)
+                            image_cnt += 1
+
+        self.sql_conn.commit()
+
+        folders = ", ".join(map(str, [self.base_path] + settings.default_settings.get("archive_folders", [])))
+        if image_cnt:
+            return image_cnt, f"Found {image_cnt} images from {folders} and subdirectories"
+        return 0, f"No images found in {folders} or subdirectories"
+
     def update_images(self) -> Tuple[List[str], str]:
-        """Check all images and update database"""
+        """Check all images and update database (Gradio-compatible wrapper)."""
         try:
-            if not self.base_path.exists():
-                return [], f"Folder not found: {self.base_path}"
-
-            image_cnt = 0
-            self.sql_conn.cursor()
-            self.sql_conn.execute("DROP TABLE images")
-            self.sql_conn.commit()
-            self.sql_conn = connect_database()
-            self.sql_conn.cursor()
-
-            # Walk through directory and all subdirectories
-            print("Scanning folder to update DB:")
-            with TimeIt("Update DB"):
-                for folder in [self.base_path] + settings.default_settings.get("archive_folders", []):
-                    print(f"    {folder}")
-                    for root, _, files in os.walk(folder):
-                        for filename in files:
-                            if filename.lower().endswith((".png", ".gif")):
-                            #if filename.lower().endswith(".png"):
-                                full_path = Path(root) / filename
-                                rel_path = str(full_path.relative_to(folder))
-                                if filename.lower().endswith(".png"):
-                                    metadata = get_png_metadata(str(full_path))
-                                else:
-                                    metadata = {} # FIXME fake data for non-png images
-                                metadata["file_path"] = rel_path
-
-                                self.add_image(str(full_path), str(rel_path), metadata)
-                                image_cnt += 1
-
-            self.sql_conn.commit()
-
-            folders = ", ".join(map(str, [self.base_path] + settings.default_settings.get("archive_folders", [])))
+            image_cnt, message = self._scan_and_rebuild()
             if image_cnt:
                 return (
                     gr.update(value=self.load_images(1)[0]),
@@ -267,14 +273,12 @@ class ImageBrowser:
                         value=1,
                         maximum=int(image_cnt/self.images_per_page) + 1,
                     ),
-                    gr.update(
-                        value=f"Found {image_cnt} images from {folders} and subdirectories",
-                    )
+                    gr.update(value=message)
                 )
             return (
                 gr.update(value=[]),
                 gr.update(value=1, maximum=1),
-                gr.update(value=f"No images found in {folders} or subdirectories")
+                gr.update(value=message)
             )
 
         except Exception as e:
