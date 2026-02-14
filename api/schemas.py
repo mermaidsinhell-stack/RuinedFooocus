@@ -195,6 +195,10 @@ class AssistantListItem(BaseModel):
     path: str
 
 
+class SelectAssistantRequest(BaseModel):
+    path: str
+
+
 class AssistantInfo(BaseModel):
     name: str
     greeting: str

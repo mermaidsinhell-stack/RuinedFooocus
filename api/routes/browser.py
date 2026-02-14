@@ -92,7 +92,7 @@ async def get_metadata(fullpath: str = Query(...)):
 async def update_db():
     """Re-scan the filesystem and rebuild the image database."""
     browser = _get_browser()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     image_count, message = await loop.run_in_executor(None, browser._scan_and_rebuild)
     return UpdateDBResponse(
         status="complete",

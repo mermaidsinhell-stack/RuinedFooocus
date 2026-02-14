@@ -12,7 +12,8 @@ os.environ["DO_NOT_TRACK"] = "1"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["CMAKE_POLICY_VERSION_MINIMUM"] = "3.5"
 
-ssl._create_default_https_context = ssl._create_unverified_context
+# SSL verification is left at Python defaults (enabled).
+# If you encounter certificate errors behind a proxy, set SSL_CERT_FILE instead.
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="insightface")
 warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
@@ -141,7 +142,7 @@ def prepare_environment(offline=False):
                 if torch_platform not in platform_index:
                     torch_platform = 'cpu'
                 run_pip(f'install {xlc_version} --index-url {platform_index[torch_platform]}', "XLlamacpp")
-        except:
+        except Exception:
             print("WARNING: Failed to install/update llm modules.")
 
 def clone_git_repos(offline=False):
@@ -202,7 +203,7 @@ if os.path.exists("reinstall"):
 
 try:
     clone_git_repos(offline)
-except:
+except Exception:
     print(f"WARNING: Failed checking git-repos. Trying to start without update.")
 
 if not offline:

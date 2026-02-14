@@ -123,7 +123,7 @@ if _frontend_dist.is_dir():
         exists, otherwise fall back to index.html so that client-side routing
         works.
         """
-        file = _frontend_dist / full_path
-        if full_path and file.is_file():
+        file = (_frontend_dist / full_path).resolve()
+        if full_path and file.is_file() and str(file).startswith(str(_frontend_dist.resolve())):
             return FileResponse(str(file))
         return FileResponse(str(_frontend_dist / "index.html"))

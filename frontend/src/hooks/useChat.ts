@@ -21,6 +21,16 @@ export function useChat() {
     api.getChatAssistants().then(setAssistants).catch(console.error)
   }, [])
 
+  // Cleanup WebSocket on unmount
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close()
+        wsRef.current = null
+      }
+    }
+  }, [])
+
   const selectAssistant = useCallback(async (path: string) => {
     try {
       const info = await api.selectAssistant(path)

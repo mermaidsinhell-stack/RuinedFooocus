@@ -11,7 +11,7 @@ export function ImageOutput({ images, preview, isGenerating }: ImageOutputProps)
   const displayImage = isGenerating && preview
     ? preview
     : images.length > 0
-      ? images[images.length - 1]
+      ? images[0]
       : null
 
   return (

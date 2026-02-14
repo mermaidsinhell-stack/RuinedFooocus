@@ -10,9 +10,11 @@ import base64
 
 import modules.async_worker as worker
 from modules.llama_pipeline import run_llama, llama_names
+from fastapi import HTTPException
 from api.schemas import (
     LlamaPresetInfo,
     LlamaRewriteRequest,
+    SelectAssistantRequest,
     AssistantListItem,
     AssistantInfo,
     ChatSendRequest,
@@ -93,7 +95,11 @@ def _get_assistants() -> list[tuple[str, str]]:
 
 def _select_assistant(path_str: str) -> dict:
     """Load full assistant info by path (ported from ui_llama_chat.py)."""
-    character = Path(path_str)
+    # Validate path is within the chatbots directory
+    safe_base = Path("chatbots").resolve()
+    character = Path(path_str).resolve()
+    if not str(character).startswith(str(safe_base)):
+        raise ValueError(f"Invalid assistant path: must be within chatbots/")
     try:
         if character.is_dir():
             with open(character / "info.json", "r", encoding="utf-8") as f:
@@ -147,7 +153,12 @@ async def get_llama_presets():
 @router.post("/llama/rewrite")
 async def llama_rewrite(req: LlamaRewriteRequest):
     """Rewrite a prompt using a llama system prompt (blocking, runs in executor)."""
-    loop = asyncio.get_event_loop()
+    # Validate system_file is within the llamas directory
+    safe_base = Path("llamas").resolve()
+    sys_path = Path(req.system_file).resolve()
+    if not str(sys_path).startswith(str(safe_base)):
+        raise HTTPException(status_code=400, detail="Invalid system file path")
+    loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, run_llama, req.system_file, req.prompt)
     return {"prompt": result}
 
@@ -164,10 +175,12 @@ async def get_chat_assistants():
 
 
 @router.post("/chat/select-assistant", response_model=AssistantInfo)
-async def select_assistant(req: dict):
+async def select_assistant(req: SelectAssistantRequest):
     """Load full details for a chatbot assistant."""
-    path = req.get("path", "")
-    info = _select_assistant(path)
+    try:
+        info = _select_assistant(req.path)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return AssistantInfo(
         name=info["name"],
         greeting=info["greeting"],
@@ -208,7 +221,7 @@ async def ws_chat(websocket: WebSocket, task_id: int):
       - {"type": "error", "message": str}
     """
     await websocket.accept()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     last_history = []
 
     try:

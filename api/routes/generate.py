@@ -101,7 +101,7 @@ async def ws_generate(websocket: WebSocket, task_id: int):
       - {"type": "error", "message": str}
     """
     await websocket.accept()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     try:
         while True:
@@ -168,7 +168,7 @@ async def ws_generate(websocket: WebSocket, task_id: int):
     except Exception as exc:
         try:
             await websocket.send_json(
-                {"type": "error", "message": str(exc)}
+                {"type": "error", "error": str(exc)}
             )
             await websocket.close()
         except Exception:

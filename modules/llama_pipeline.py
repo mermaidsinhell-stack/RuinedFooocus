@@ -40,7 +40,7 @@ def run_llama(system_file, prompt):
                 file = open(system_file, "r", encoding='utf-8')
                 name = name if name is not None else file.readline().strip()
                 system_prompt = file.read().strip()
-            except:
+            except Exception:
                 print(f"LLAMA ERROR: Could not open file {system_file}")
                 return prompt
 

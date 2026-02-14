@@ -165,7 +165,7 @@ def connect_database(path="cache/images.db"):
             )
             # Skip dropping "old" table.
             # conn.execute("DROP TABLE images")
-        except:
+        except Exception:
             pass
     conn.commit()
     conn.cursor()
@@ -185,7 +185,7 @@ class ImageBrowser:
         self.filter = ""
 
     def num_images_pages(self):
-        result = self.sql_conn.execute(f"SELECT count(*) FROM images WHERE json LIKE '%{self.filter}%'") # FIXME!!! should only match prompt?
+        result = self.sql_conn.execute("SELECT count(*) FROM images WHERE json LIKE ?", (f"%{self.filter}%",))
         image_cnt = result.fetchone()[0]
         pages = int(image_cnt/self.images_per_page) + 1
         return image_cnt, pages
@@ -195,8 +195,9 @@ class ImageBrowser:
         if page == None:
             page = 1
         result = self.sql_conn.execute(
-            f"SELECT fullpath, path FROM images WHERE json LIKE '%{self.filter}%' ORDER BY path DESC LIMIT ? OFFSET ?",
+            "SELECT fullpath, path FROM images WHERE json LIKE ? ORDER BY path DESC LIMIT ? OFFSET ?",
             (
+                f"%{self.filter}%",
                 str(self.images_per_page),
                 str((page-1)*self.images_per_page),
             )
