@@ -208,13 +208,13 @@ except:
 if not offline:
     download_models()
 
-gradio_cache = os.path.join(gettempdir(), 'ruinedfooocus_cache')
-os.environ['GRADIO_TEMP_DIR'] = gradio_cache
+cache_dir = os.path.join(gettempdir(), 'ruinedfooocus_cache')
+os.environ['GRADIO_TEMP_DIR'] = cache_dir  # kept for legacy code that reads this
 # Delete old data
 import shutil
 try:
-    if args.clean_cache and gradio_cache.endswith('ruinedfooocus_cache'):
-        shutil.rmtree(gradio_cache)
+    if args.clean_cache and cache_dir.endswith('ruinedfooocus_cache'):
+        shutil.rmtree(cache_dir)
 except FileNotFoundError:
     pass
 except PermissionError:
@@ -223,6 +223,14 @@ except Exception as e:
     print(f"An error occurred: {str(e)}")
 
 def launch_ui():
-    print("Starting webui")
-    import webui
-launch_ui()
+    print("Starting RuinedFooocus API server")
+    import uvicorn
+    from api_server import app
+
+    host = args.listen if args.listen else "127.0.0.1"
+    port = args.port if args.port else 7865
+
+    uvicorn.run(app, host=host, port=port)
+
+if __name__ == "__main__":
+    launch_ui()
