@@ -52,6 +52,7 @@ export function StyleSelector({
           <Button
             variant="ghost"
             size="sm"
+            type="button"
             className="h-6 px-2 text-[12px]"
             onClick={onSendToPrompt}
           >
@@ -122,7 +123,8 @@ export function StyleSelector({
                   height="12"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="white"
+                  stroke="currentColor"
+                  className="text-primary-foreground"
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"

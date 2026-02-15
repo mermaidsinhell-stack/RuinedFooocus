@@ -546,6 +546,20 @@ export function SettingsView({ settings, checkpoints, loras }: SettingsViewProps
 
             <div className="glass-card rounded-xl p-4 space-y-4">
               <SectionHeader>Other</SectionHeader>
+              <div className="space-y-1">
+                <Label className="text-[13px] text-muted-foreground">Default Interrogator</Label>
+                <Select
+                  value={(local.interrogator as string) ?? ''}
+                  onValueChange={(v) => set('interrogator', v || null)}
+                  options={[
+                    { value: '', label: 'None' },
+                    { value: 'brainblip', label: 'BrainBlip' },
+                    { value: 'clip', label: 'CLIP' },
+                    { value: 'florence', label: 'Florence' },
+                  ]}
+                  className="h-8 text-[15px] bg-background border-none rounded-lg"
+                />
+              </div>
               <CheckField
                 label="Save Metadata"
                 value={local.save_metadata as boolean ?? true}

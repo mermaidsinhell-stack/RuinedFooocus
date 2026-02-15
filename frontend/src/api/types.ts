@@ -16,8 +16,8 @@ export interface GenerateRequest {
   seed: number
   image_number: number
   auto_negative_prompt: boolean
-  cn_selection: string | null
-  cn_type: string | null
+  cn_selection: string
+  cn_type: string
   input_image: string | null
   cn_edge_low: number
   cn_edge_high: number

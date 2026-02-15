@@ -4,7 +4,7 @@ import io
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from PIL import Image
 
 import modules.async_worker as worker
@@ -37,8 +37,8 @@ def _build_gen_data(req: GenerateRequest) -> dict:
         try:
             image_bytes = base64.b64decode(req.input_image)
             input_image = Image.open(io.BytesIO(image_bytes))
-        except Exception:
-            input_image = None
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to decode input image: {e}")
 
     gen_data = {
         "task_type": "process",

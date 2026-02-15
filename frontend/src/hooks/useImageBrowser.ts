@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '@/api/client'
 import type { BrowseImageItem, ImageMetadata } from '@/api/types'
 
@@ -81,17 +81,26 @@ export function useImageBrowser(): UseImageBrowserReturn {
     setMetadata(null)
   }, [search])
 
+  const selectRequestRef = useRef(0)
+
   const selectImage = useCallback(async (image: BrowseImageItem) => {
+    const requestId = ++selectRequestRef.current
     setSelectedImage(image)
     setMetadata(null)
     setMetadataLoading(true)
     try {
       const data = await api.getImageMetadata(image.fullpath)
-      setMetadata(data)
+      if (requestId === selectRequestRef.current) {
+        setMetadata(data)
+      }
     } catch {
-      setMetadata(null)
+      if (requestId === selectRequestRef.current) {
+        setMetadata(null)
+      }
     } finally {
-      setMetadataLoading(false)
+      if (requestId === selectRequestRef.current) {
+        setMetadataLoading(false)
+      }
     }
   }, [])
 

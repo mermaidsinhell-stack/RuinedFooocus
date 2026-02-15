@@ -1,4 +1,5 @@
 import * as React from "react"
+import { X } from "lucide-react"
 import { Select } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
@@ -72,6 +73,7 @@ export function ControlNetPanel({
 }: ControlNetPanelProps) {
   const [saveName, setSaveName] = React.useState("")
   const [saving, setSaving] = React.useState(false)
+  const [deleting, setDeleting] = React.useState(false)
 
   const isCustom = cnSelection === CUSTOM_VALUE
   const vis = getVisibility(cnType)
@@ -129,15 +131,45 @@ export function ControlNetPanel({
     }
   }
 
+  async function handleDeletePreset() {
+    if (cnSelection === "None" || cnSelection === CUSTOM_VALUE) return
+    setDeleting(true)
+    try {
+      const result = await api.deleteControlNetPreset(cnSelection)
+      onPresetsUpdate(result.presets)
+      onSelectionChange("None")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const isPresetSelected = cnSelection !== "None" && cnSelection !== CUSTOM_VALUE
+
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label className="text-[15px]">Cheat Code</Label>
-        <Select
-          value={cnSelection}
-          onValueChange={handleSelectionChange}
-          options={selectionOptions}
-        />
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Select
+              value={cnSelection}
+              onValueChange={handleSelectionChange}
+              options={selectionOptions}
+            />
+          </div>
+          {isPresetSelected && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDeletePreset}
+              disabled={deleting}
+              className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive"
+              title="Delete preset"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {isCustom && (

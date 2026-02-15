@@ -18,6 +18,7 @@ export function MetadataViewer({ imageUrl }: MetadataViewerProps) {
 
     let cancelled = false
     setLoading(true)
+    setMetadata(null)
 
     api
       .getImageMetadataByUrl(imageUrl)
