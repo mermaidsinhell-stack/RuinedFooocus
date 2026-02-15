@@ -22,7 +22,7 @@ export function ImageGrid({ images, loading, selectedImage, onSelect }: ImageGri
   if (images.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[15px] text-muted-foreground">
           No images found. Click "Update DB" to scan for images.
         </p>
       </div>
@@ -38,11 +38,11 @@ export function ImageGrid({ images, loading, selectedImage, onSelect }: ImageGri
             type="button"
             onClick={() => onSelect(image)}
             className={cn(
-              "aspect-square rounded-md overflow-hidden border-2 transition-colors",
-              "hover:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+              "aspect-square rounded-xl overflow-hidden shadow-sm transition-all",
+              "hover:ring-2 hover:ring-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               selectedImage?.fullpath === image.fullpath
-                ? "border-primary ring-2 ring-primary"
-                : "border-border"
+                ? "ring-2 ring-primary"
+                : ""
             )}
           >
             <img

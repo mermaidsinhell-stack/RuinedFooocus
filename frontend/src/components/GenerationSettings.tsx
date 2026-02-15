@@ -69,7 +69,7 @@ export function GenerationSettings({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label>Performance</Label>
+        <Label className="text-[15px]">Performance</Label>
         <Select
           value={performance}
           onValueChange={handlePerformanceChange}
@@ -79,11 +79,11 @@ export function GenerationSettings({
       </div>
 
       {isCustom && (
-        <div className="space-y-3 rounded-md border border-border p-3">
+        <div className="space-y-3 bg-background rounded-xl p-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label>Steps</Label>
-              <span className="text-sm text-muted-foreground tabular-nums">
+              <Label className="text-[15px]">Steps</Label>
+              <span className="text-[13px] text-muted-foreground tabular-nums">
                 {customSteps}
               </span>
             </div>
@@ -98,8 +98,8 @@ export function GenerationSettings({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label>CFG Scale</Label>
-              <span className="text-sm text-muted-foreground tabular-nums">
+              <Label className="text-[15px]">CFG Scale</Label>
+              <span className="text-[13px] text-muted-foreground tabular-nums">
                 {cfg.toFixed(1)}
               </span>
             </div>
@@ -113,7 +113,7 @@ export function GenerationSettings({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Sampler</Label>
+            <Label className="text-[15px]">Sampler</Label>
             <Select
               value={samplerName}
               onValueChange={onSamplerChange}
@@ -123,7 +123,7 @@ export function GenerationSettings({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Scheduler</Label>
+            <Label className="text-[15px]">Scheduler</Label>
             <Select
               value={scheduler}
               onValueChange={onSchedulerChange}
@@ -134,8 +134,8 @@ export function GenerationSettings({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label>Clip Skip</Label>
-              <span className="text-sm text-muted-foreground tabular-nums">
+              <Label className="text-[15px]">Clip Skip</Label>
+              <span className="text-[13px] text-muted-foreground tabular-nums">
                 {clipSkip}
               </span>
             </div>

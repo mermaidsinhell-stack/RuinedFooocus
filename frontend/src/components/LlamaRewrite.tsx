@@ -47,14 +47,14 @@ export function LlamaRewrite({ prompt, onPromptChange }: LlamaRewriteProps) {
         onValueChange={setSelectedFile}
         options={presets.map((p) => ({ value: p.file, label: p.name }))}
         placeholder="Select preset..."
-        className="h-8 text-xs flex-1"
+        className="h-8 text-xs flex-1 rounded-lg"
       />
       <Button
         variant="outline"
         size="sm"
         disabled={loading || !prompt.trim()}
         onClick={handleRewrite}
-        className="h-8 text-xs shrink-0"
+        className="h-8 text-xs shrink-0 rounded-lg"
       >
         {loading ? (
           <Loader2 className="h-3 w-3 animate-spin mr-1" />

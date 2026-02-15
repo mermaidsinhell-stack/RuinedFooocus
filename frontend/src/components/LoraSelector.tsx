@@ -66,7 +66,7 @@ export function LoraSelector({
       </div>
 
       {showBrowser && (
-        <div className="space-y-2 rounded-md border border-border p-3">
+        <div className="space-y-2 rounded-xl glass-card p-3">
           <Input
             placeholder="Search LoRAs..."
             value={search}
@@ -80,10 +80,10 @@ export function LoraSelector({
                 onClick={() => addLora(lora.name)}
                 disabled={activeLoraNames.has(lora.name)}
                 className={cn(
-                  "flex flex-col items-center gap-1 p-2 rounded-md border border-border text-left transition-colors",
-                  "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                  "flex flex-col items-center gap-1 p-2 rounded-xl glass-card text-left transition-all",
+                  "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   "disabled:opacity-50 disabled:pointer-events-none",
-                  activeLoraNames.has(lora.name) && "border-primary bg-accent/30"
+                  activeLoraNames.has(lora.name) && "ring-2 ring-primary bg-accent/30"
                 )}
               >
                 {lora.thumbnail ? (
@@ -97,13 +97,13 @@ export function LoraSelector({
                     <span className="text-xs text-muted-foreground">No preview</span>
                   </div>
                 )}
-                <span className="text-xs text-foreground truncate w-full text-center">
+                <span className="text-[13px] text-foreground truncate w-full text-center">
                   {lora.name}
                 </span>
               </button>
             ))}
             {filtered.length === 0 && (
-              <p className="col-span-3 text-sm text-muted-foreground text-center py-4">
+              <p className="col-span-3 text-[15px] text-muted-foreground text-center py-4">
                 No LoRAs found
               </p>
             )}
@@ -119,10 +119,10 @@ export function LoraSelector({
             return (
               <div
                 key={entry.name}
-                className="rounded-md border border-border p-3 space-y-2"
+                className="rounded-xl glass-card p-3 space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-foreground truncate flex-1">
+                  <span className="text-[15px] text-foreground truncate flex-1">
                     {entry.name}
                   </span>
                   <Button
@@ -177,7 +177,7 @@ export function LoraSelector({
       )}
 
       {activeLoras.length === 0 && !showBrowser && (
-        <p className="text-sm text-muted-foreground">No LoRAs selected</p>
+        <p className="text-[15px] text-muted-foreground">No LoRAs selected</p>
       )}
     </div>
   )

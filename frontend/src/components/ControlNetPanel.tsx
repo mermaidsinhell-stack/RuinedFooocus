@@ -132,7 +132,7 @@ export function ControlNetPanel({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label>Cheat Code</Label>
+        <Label className="text-[15px]">Cheat Code</Label>
         <Select
           value={cnSelection}
           onValueChange={handleSelectionChange}
@@ -141,9 +141,9 @@ export function ControlNetPanel({
       </div>
 
       {isCustom && (
-        <div className="space-y-3 rounded-md border border-border p-3">
+        <div className="space-y-3 bg-background rounded-xl p-4">
           <div className="space-y-1.5">
-            <Label>Type</Label>
+            <Label className="text-[15px]">Type</Label>
             <Select
               value={cnType}
               onValueChange={onTypeChange}
@@ -154,8 +154,8 @@ export function ControlNetPanel({
           {vis.edgeLow && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Edge (low)</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
+                <Label className="text-[15px]">Edge (low)</Label>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
                   {cnEdgeLow.toFixed(2)}
                 </span>
               </div>
@@ -166,8 +166,8 @@ export function ControlNetPanel({
           {vis.edgeHigh && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Edge (high)</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
+                <Label className="text-[15px]">Edge (high)</Label>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
                   {cnEdgeHigh.toFixed(2)}
                 </span>
               </div>
@@ -178,8 +178,8 @@ export function ControlNetPanel({
           {vis.start && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Start</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
+                <Label className="text-[15px]">Start</Label>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
                   {cnStart.toFixed(2)}
                 </span>
               </div>
@@ -190,8 +190,8 @@ export function ControlNetPanel({
           {vis.stop && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Stop</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
+                <Label className="text-[15px]">Stop</Label>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
                   {cnStop.toFixed(2)}
                 </span>
               </div>
@@ -202,8 +202,8 @@ export function ControlNetPanel({
           {vis.strength && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Strength</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
+                <Label className="text-[15px]">Strength</Label>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
                   {cnStrength.toFixed(2)}
                 </span>
               </div>
@@ -213,7 +213,7 @@ export function ControlNetPanel({
 
           {vis.upscaler && (
             <div className="space-y-1.5">
-              <Label>Upscaler</Label>
+              <Label className="text-[15px]">Upscaler</Label>
               <Select
                 value={cnUpscale}
                 onValueChange={onUpscaleChange}

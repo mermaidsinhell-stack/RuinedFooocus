@@ -247,3 +247,27 @@ class ModelFilesResponse(BaseModel):
     clip_vision: list[str] = Field(default_factory=list)
     vae: list[str] = Field(default_factory=list)
     llm: list[str] = Field(default_factory=list)
+
+
+class InterrogateRequest(BaseModel):
+    image: str  # base64-encoded image data
+    method: str = ""  # "brainblip", "clip", "florence", or "" for default
+
+
+class InterrogateResponse(BaseModel):
+    prompt: str
+
+
+class HintResponse(BaseModel):
+    hint: str
+
+
+class StyleApplyRequest(BaseModel):
+    styles: list[str]
+    prompt: str = ""
+    negative_prompt: str = ""
+
+
+class StyleApplyResponse(BaseModel):
+    prompt: str
+    negative_prompt: str

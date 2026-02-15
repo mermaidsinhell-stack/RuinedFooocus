@@ -10,7 +10,7 @@ export interface MetadataPanelProps {
 export function MetadataPanel({ image, metadata, loading }: MetadataPanelProps) {
   if (!image) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-[15px] text-muted-foreground">
         Click an image to view its metadata
       </p>
     )
@@ -19,7 +19,7 @@ export function MetadataPanel({ image, metadata, loading }: MetadataPanelProps) 
   return (
     <div className="space-y-3">
       {/* Preview */}
-      <div className="rounded-md overflow-hidden border border-border">
+      <div className="rounded-xl overflow-hidden shadow-sm">
         <img
           src={image.url}
           alt={image.filename}
@@ -28,18 +28,18 @@ export function MetadataPanel({ image, metadata, loading }: MetadataPanelProps) 
       </div>
 
       {/* Filename */}
-      <p className="text-xs text-muted-foreground break-all">{image.filename}</p>
+      <p className="text-[13px] text-muted-foreground break-all">{image.filename}</p>
 
       {/* Metadata */}
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-[15px] text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading metadata...
         </div>
       ) : metadata ? (
         <MetadataDisplay metadata={metadata} />
       ) : (
-        <p className="text-xs text-muted-foreground">No metadata available</p>
+        <p className="text-[13px] text-muted-foreground">No metadata available</p>
       )}
     </div>
   )
@@ -49,24 +49,30 @@ function MetadataDisplay({ metadata }: { metadata: ImageMetadata }) {
   const f = metadata.formatted as Record<string, unknown>
 
   return (
-    <div className="space-y-2 text-sm">
+    <div className="space-y-3 text-[15px]">
       {f["Prompt"] ? (
-        <MetadataField label="Prompt" value={String(f["Prompt"])} />
+        <div className="glass-card rounded-xl p-3">
+          <MetadataField label="Prompt" value={String(f["Prompt"])} />
+        </div>
       ) : null}
       {f["Negative Prompt"] ? (
-        <MetadataField label="Negative" value={String(f["Negative Prompt"])} />
+        <div className="glass-card rounded-xl p-3">
+          <MetadataField label="Negative" value={String(f["Negative Prompt"])} />
+        </div>
       ) : null}
       {f["Model"] ? (
-        <MetadataField label="Model" value={String(f["Model"])} />
+        <div className="glass-card rounded-xl p-3">
+          <MetadataField label="Model" value={String(f["Model"])} />
+        </div>
       ) : null}
       {typeof f["Settings"] === "object" && f["Settings"] !== null ? (
-        <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Settings</p>
-          <div className="flex flex-wrap gap-1">
+        <div className="glass-card rounded-xl p-3">
+          <p className="text-[13px] font-medium text-muted-foreground mb-1.5">Settings</p>
+          <div className="flex flex-wrap gap-1.5">
             {Object.entries(f["Settings"] as Record<string, unknown>).map(([key, val]) => (
               <span
                 key={key}
-                className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-xs"
+                className="inline-flex items-center rounded-lg bg-background px-2 py-0.5 text-[13px]"
               >
                 <span className="text-muted-foreground mr-1">{key}:</span>
                 <span>{String(val)}</span>
@@ -76,17 +82,17 @@ function MetadataDisplay({ metadata }: { metadata: ImageMetadata }) {
         </div>
       ) : null}
       {Array.isArray(f["LoRAs"]) && (f["LoRAs"] as string[]).length > 0 ? (
-        <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">LoRAs</p>
+        <div className="glass-card rounded-xl p-3">
+          <p className="text-[13px] font-medium text-muted-foreground mb-1.5">LoRAs</p>
           <div className="space-y-0.5">
             {(f["LoRAs"] as string[]).map((lora, i) => (
-              <p key={i} className="text-xs break-all">{String(lora)}</p>
+              <p key={i} className="text-[13px] break-all">{String(lora)}</p>
             ))}
           </div>
         </div>
       ) : null}
       {f["Software"] ? (
-        <p className="text-xs text-muted-foreground">{String(f["Software"])}</p>
+        <p className="text-[13px] text-muted-foreground">{String(f["Software"])}</p>
       ) : null}
     </div>
   )
@@ -95,8 +101,8 @@ function MetadataDisplay({ metadata }: { metadata: ImageMetadata }) {
 function MetadataField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="text-sm break-words whitespace-pre-wrap">{value}</p>
+      <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
+      <p className="text-[15px] break-words whitespace-pre-wrap">{value}</p>
     </div>
   )
 }

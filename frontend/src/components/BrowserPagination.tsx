@@ -17,32 +17,34 @@ export function BrowserPagination({
   onPageChange,
 }: BrowserPaginationProps) {
   return (
-    <div className="border-t border-border px-3 py-2 flex items-center gap-3 shrink-0">
+    <div className="glass-bar glass-bar-edge-top px-3 py-2.5 flex items-center gap-3 shrink-0">
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
+        className="rounded-lg"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="text-sm text-foreground tabular-nums">
+      <span className="text-[15px] text-foreground tabular-nums">
         Page {page} of {totalPages}
       </span>
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
+        className="rounded-lg"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
       <div className="flex-1" />
-      <span className="text-xs text-muted-foreground">
+      <span className="text-[13px] text-muted-foreground">
         {totalImages} images
       </span>
       {rangeText && (
-        <span className="text-xs text-muted-foreground truncate max-w-xs">
+        <span className="text-[13px] text-muted-foreground truncate max-w-xs">
           {rangeText}
         </span>
       )}

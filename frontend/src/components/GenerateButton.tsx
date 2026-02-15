@@ -1,7 +1,4 @@
-import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 export interface GenerateProgress {
@@ -15,8 +12,6 @@ export interface GenerateButtonProps {
   progress: GenerateProgress | null
   onGenerate: () => void
   onStop: () => void
-  imageCount: number
-  onImageCountChange: (count: number) => void
 }
 
 export function GenerateButton({
@@ -24,36 +19,20 @@ export function GenerateButton({
   progress,
   onGenerate,
   onStop,
-  imageCount,
-  onImageCountChange,
 }: GenerateButtonProps) {
   return (
-    <div className="space-y-3">
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label>Image Count</Label>
-          <span className="text-sm text-muted-foreground">{imageCount}</span>
-        </div>
-        <Slider
-          min={1}
-          max={50}
-          step={1}
-          value={imageCount}
-          onValueChange={onImageCountChange}
-        />
-      </div>
-
+    <div className="space-y-2">
       {isGenerating ? (
         <Button
           variant="destructive"
-          className="w-full"
+          className="w-full rounded-xl text-[15px] font-semibold"
           onClick={onStop}
         >
           Stop
         </Button>
       ) : (
         <Button
-          className="w-full"
+          className="w-full rounded-xl bg-primary text-primary-foreground text-[15px] font-semibold hover:bg-primary/90"
           onClick={onGenerate}
         >
           Generate
@@ -61,8 +40,8 @@ export function GenerateButton({
       )}
 
       {isGenerating && progress && (
-        <div className="space-y-1.5">
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+        <div className="space-y-1">
+          <div className="h-2 w-full rounded-full bg-secondary/60 overflow-hidden">
             <div
               className={cn(
                 "h-full rounded-full bg-primary transition-all duration-300 ease-out"
@@ -71,7 +50,7 @@ export function GenerateButton({
             />
           </div>
           {progress.status && (
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-[13px] text-muted-foreground text-center">
               {progress.status}
             </p>
           )}

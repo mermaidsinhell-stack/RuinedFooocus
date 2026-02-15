@@ -179,7 +179,7 @@ export function OneButtonPrompt({
           size="sm"
           onClick={handleInstantOBP}
           disabled={generating}
-          className="flex-1"
+          className="flex-1 rounded-lg"
         >
           {generating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
           Instant OBP
@@ -189,7 +189,7 @@ export function OneButtonPrompt({
           size="sm"
           onClick={handleRandomPrompt}
           disabled={generating}
-          className="flex-1"
+          className="flex-1 rounded-lg"
         >
           Random Prompt
         </Button>
@@ -198,7 +198,7 @@ export function OneButtonPrompt({
           size="sm"
           onClick={handleAddPrompt}
           disabled={generating}
-          className="w-10"
+          className="w-10 rounded-lg"
         >
           +
         </Button>
@@ -206,7 +206,7 @@ export function OneButtonPrompt({
 
       {/* Preset selector */}
       <div className="space-y-1.5">
-        <Label>One Button Preset</Label>
+        <Label className="text-[15px]">One Button Preset</Label>
         <Select
           value={preset}
           onValueChange={handlePresetChange}
@@ -216,12 +216,12 @@ export function OneButtonPrompt({
 
       {/* Custom configuration form */}
       {isCustom && (
-        <div className="space-y-3 rounded-md border border-border p-3">
+        <div className="space-y-3 bg-background rounded-xl p-4">
           {/* Insanity level */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label>Insanity Level</Label>
-              <span className="text-sm text-muted-foreground tabular-nums">
+              <Label className="text-[15px]">Insanity Level</Label>
+              <span className="text-[13px] text-muted-foreground tabular-nums">
                 {form.insanitylevel}
               </span>
             </div>
@@ -237,7 +237,7 @@ export function OneButtonPrompt({
           {/* Subject + Artist */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <Label>Subject</Label>
+              <Label className="text-[15px]">Subject</Label>
               <Select
                 value={form.subject}
                 onValueChange={(v) => setForm((f) => ({ ...f, subject: v }))}
@@ -245,7 +245,7 @@ export function OneButtonPrompt({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Artist</Label>
+              <Label className="text-[15px]">Artist</Label>
               <Select
                 value={form.artist}
                 onValueChange={(v) => setForm((f) => ({ ...f, artist: v }))}
@@ -257,7 +257,7 @@ export function OneButtonPrompt({
           {/* Conditional subtypes */}
           {showSubtypeObject && (
             <div className="space-y-1.5">
-              <Label>Type of object</Label>
+              <Label className="text-[15px]">Type of object</Label>
               <Select
                 value={form.chosensubjectsubtypeobject}
                 onValueChange={(v) => setForm((f) => ({ ...f, chosensubjectsubtypeobject: v }))}
@@ -268,7 +268,7 @@ export function OneButtonPrompt({
 
           {showSubtypeHumanoid && (
             <div className="space-y-1.5">
-              <Label>Type of humanoid</Label>
+              <Label className="text-[15px]">Type of humanoid</Label>
               <Select
                 value={form.chosensubjectsubtypehumanoid}
                 onValueChange={(v) => setForm((f) => ({ ...f, chosensubjectsubtypehumanoid: v }))}
@@ -279,7 +279,7 @@ export function OneButtonPrompt({
 
           {showSubtypeConcept && (
             <div className="space-y-1.5">
-              <Label>Type of concept</Label>
+              <Label className="text-[15px]">Type of concept</Label>
               <Select
                 value={form.chosensubjectsubtypeconcept}
                 onValueChange={(v) => setForm((f) => ({ ...f, chosensubjectsubtypeconcept: v }))}
@@ -290,7 +290,7 @@ export function OneButtonPrompt({
 
           {showGender && (
             <div className="space-y-1.5">
-              <Label>Gender</Label>
+              <Label className="text-[15px]">Gender</Label>
               <Select
                 value={form.chosengender}
                 onValueChange={(v) => setForm((f) => ({ ...f, chosengender: v }))}
@@ -302,7 +302,7 @@ export function OneButtonPrompt({
           {/* Image type + mode chance */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <Label>Image Type</Label>
+              <Label className="text-[15px]">Image Type</Label>
               <Select
                 value={form.imagetype}
                 onValueChange={(v) => setForm((f) => ({ ...f, imagetype: v }))}
@@ -311,8 +311,8 @@ export function OneButtonPrompt({
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label>Mode Chance</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
+                <Label className="text-[15px]">Mode Chance</Label>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
                   1/{form.imagemodechance}
                 </span>
               </div>
@@ -395,7 +395,7 @@ export function OneButtonPrompt({
       {/* Bottom row: prompt enhance + model type */}
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1.5">
-          <Label>Prompt Enhance</Label>
+          <Label className="text-[15px]">Prompt Enhance</Label>
           <Select
             value={promptEnhance}
             onValueChange={setPromptEnhance}
@@ -403,7 +403,7 @@ export function OneButtonPrompt({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Model Type</Label>
+          <Label className="text-[15px]">Model Type</Label>
           <Select
             value={modelType}
             onValueChange={setModelType}

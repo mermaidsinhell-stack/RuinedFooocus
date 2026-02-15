@@ -20,6 +20,7 @@ import type {
   ChatSendResponse,
   PathsData,
   ModelFilesData,
+  PresetsResponse,
 } from './types'
 
 const BASE = '/api'
@@ -105,6 +106,11 @@ export const api = {
     return request(`/browser/metadata?${params}`)
   },
 
+  getImageMetadataByUrl(url: string): Promise<ImageMetadata> {
+    const params = new URLSearchParams({ url })
+    return request(`/browser/metadata-by-url?${params}`)
+  },
+
   updateBrowserDB(): Promise<UpdateDBResponse> {
     return request('/browser/update', { method: 'POST' })
   },
@@ -166,5 +172,36 @@ export const api = {
 
   getModelFiles(): Promise<ModelFilesData> {
     return request('/settings/model-files')
+  },
+
+  // Presets
+  getPresets(): Promise<PresetsResponse> {
+    return request('/presets')
+  },
+
+  // Wildcards
+  getWildcards(): Promise<{ wildcards: string[] }> {
+    return request('/wildcards')
+  },
+
+  // Interrogation
+  interrogate(image: string, method: string = ''): Promise<{ prompt: string }> {
+    return request('/interrogate', {
+      method: 'POST',
+      body: JSON.stringify({ image, method }),
+    })
+  },
+
+  // Hints
+  getHint(): Promise<{ hint: string }> {
+    return request('/hint')
+  },
+
+  // Styles
+  applyStyles(styles: string[], prompt: string, negative_prompt: string): Promise<{ prompt: string; negative_prompt: string }> {
+    return request('/styles/apply', {
+      method: 'POST',
+      body: JSON.stringify({ styles, prompt, negative_prompt }),
+    })
   },
 }

@@ -6,9 +6,14 @@ import { useModels } from '@/hooks/useModels'
 import { useGenerate } from '@/hooks/useGenerate'
 
 import type { GenerateRequest, ControlNetPreset } from '@/api/types'
+import { api } from '@/api/client'
 
-import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Accordion } from '@/components/ui/accordion'
+import { Slider } from '@/components/ui/slider'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 import { PromptInput } from '@/components/PromptInput'
 import { GenerateButton } from '@/components/GenerateButton'
@@ -29,6 +34,10 @@ import { LlamaRewrite } from '@/components/LlamaRewrite'
 import { ImageBrowserView } from '@/components/ImageBrowserView'
 import { ChatView } from '@/components/ChatView'
 import { SettingsView } from '@/components/SettingsView'
+import { MetadataViewer } from '@/components/MetadataViewer'
+import { PresetSelector } from '@/components/PresetSelector'
+import { WildcardDropdown } from '@/components/WildcardDropdown'
+import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
 // Default generation parameters
@@ -64,6 +73,33 @@ const DEFAULT_PARAMS: GenerateRequest = {
 }
 
 // ---------------------------------------------------------------------------
+// Bottom tab bar item
+// ---------------------------------------------------------------------------
+
+function TabBarItem({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "py-2.5 px-4 text-[13px] font-medium transition-colors",
+        active ? "text-primary" : "text-muted-foreground"
+      )}
+    >
+      {label}
+    </button>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main App
 // ---------------------------------------------------------------------------
 
@@ -73,12 +109,18 @@ export default function App() {
   const { isGenerating, progress, images, error: generateError, generate, stop } = useGenerate()
 
   const [activeTab, setActiveTab] = useState<'generate' | 'browse' | 'chat' | 'settings'>('generate')
+  const [activeRightTab, setActiveRightTab] = useState<string>('setting')
+  const [activeModelTab, setActiveModelTab] = useState<string>('model')
   const [params, setParams] = useState<GenerateRequest>(DEFAULT_PARAMS)
   const [randomSeed, setRandomSeed] = useState(true)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [cnPresets, setCnPresets] = useState<ControlNetPreset[]>([])
   const [inpaintEnabled, setInpaintEnabled] = useState(false)
   const [originalInputImage, setOriginalInputImage] = useState<string | null>(null)
+  const [activePreset, setActivePreset] = useState<string | null>(null)
+  const [prePresetParams, setPrePresetParams] = useState<GenerateRequest | null>(null)
+  const [presetKeys, setPresetKeys] = useState<string[]>([])
+  const [hint, setHint] = useState<string | null>(null)
 
   // Apply server default settings once loaded
   const defaultsApplied = useRef(false)
@@ -109,7 +151,6 @@ export default function App() {
       if (typeof d.seed_random === 'boolean') {
         setRandomSeed(d.seed_random)
       }
-      // Initialize CN presets from settings
       if (settings.controlnet_presets) {
         setCnPresets(settings.controlnet_presets)
       }
@@ -136,271 +177,431 @@ export default function App() {
       request.seed = -1
     }
     generate(request)
+    // Fetch a random hint to display during generation
+    api.getHint().then((r) => setHint(r.hint)).catch((e) => console.warn('Failed to fetch hint:', e))
   }, [generate, params, randomSeed])
+
+  // Keyboard shortcut: Ctrl+Enter = Generate
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault()
+        handleGenerate()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleGenerate])
 
   const handleGallerySelect = useCallback((url: string) => {
     setSelectedImage(url)
   }, [])
 
+  const handleApplyPreset = useCallback((overrides: Partial<GenerateRequest>) => {
+    setPresetKeys(Object.keys(overrides))
+    setParams((current) => {
+      setPrePresetParams({ ...current })
+      return { ...current, ...overrides }
+    })
+  }, [])
+
+  const handleClearPreset = useCallback(() => {
+    if (prePresetParams) {
+      setParams((current) => {
+        const restored = { ...current }
+        for (const key of presetKeys) {
+          const k = key as keyof GenerateRequest
+          ;(restored as Record<keyof GenerateRequest, unknown>)[k] =
+            prePresetParams[k]
+        }
+        return restored
+      })
+      setPrePresetParams(null)
+      setPresetKeys([])
+    }
+  }, [prePresetParams, presetKeys])
+
+  const handleSendStyleToPrompt = useCallback(async () => {
+    if (params.style_selection.length === 0) return
+    try {
+      const result = await api.applyStyles(
+        params.style_selection,
+        params.prompt,
+        params.negative_prompt
+      )
+      setParams((p) => ({
+        ...p,
+        prompt: result.prompt,
+        negative_prompt: result.negative_prompt,
+        style_selection: [],
+      }))
+    } catch (e) {
+      console.error('Failed to apply styles:', e)
+    }
+  }, [params.style_selection, params.prompt, params.negative_prompt])
+
   // Loading state
   if (settingsLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="text-sm">Loading settings...</span>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="text-[15px]">Loading...</span>
         </div>
       </div>
     )
   }
 
-  // Error state
-  if (settingsError) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-destructive">
-          <span className="text-sm">Failed to load settings: {settingsError}</span>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // Build the display image: selected image, or preview during generation
   const displayImages = selectedImage
     ? [selectedImage, ...images.filter((u) => u !== selectedImage)]
     : images
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="border-b border-border px-4 py-2 flex items-center gap-4 shrink-0">
-        <h1 className="text-lg font-semibold text-foreground">RuinedFooocus</h1>
-        <div className="flex gap-1">
-          <Button
-            variant={activeTab === 'generate' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('generate')}
-          >
-            Generate
-          </Button>
-          <Button
-            variant={activeTab === 'browse' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('browse')}
-          >
-            Browse
-          </Button>
-          <Button
-            variant={activeTab === 'chat' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('chat')}
-          >
-            Chat
-          </Button>
-          <Button
-            variant={activeTab === 'settings' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('settings')}
-          >
-            Settings
-          </Button>
-        </div>
+    <div className="h-screen relative bg-background">
+      {/* iOS-style navigation bar */}
+      <header className="fixed top-0 left-0 right-0 z-50 glass-bar glass-bar-edge-bottom px-4 pt-2 pb-1.5 flex items-center">
+        <h1 className="text-[17px] font-serif-display font-semibold text-foreground">RuinedFooocus</h1>
         <div className="flex-1" />
+        {settingsError && (
+          <span className="text-[12px] text-orange-500 font-medium">Offline</span>
+        )}
         {generateError && (
-          <span className="text-xs text-destructive">{generateError}</span>
+          <span className="text-[12px] text-destructive font-medium">{generateError}</span>
         )}
       </header>
 
-      {activeTab === 'browse' ? (
-        <ImageBrowserView />
-      ) : activeTab === 'chat' ? (
-        <ChatView />
-      ) : activeTab === 'settings' ? (
-        <SettingsView settings={settings} checkpoints={checkpoints} loras={loras} />
-      ) : (
-      /* Main content - two column layout */
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left - Image display */}
-        <div className="flex-[3] flex flex-col p-4 gap-4 min-w-0">
-          <ImageOutput
-            images={displayImages}
-            preview={progress?.preview ?? null}
-            isGenerating={isGenerating}
-          />
-          <Gallery images={images} onSelect={handleGallerySelect} />
-        </div>
+      {/* Main content area */}
+      <div className="absolute inset-0 overflow-hidden">
+        {activeTab === 'browse' ? (
+          <ImageBrowserView />
+        ) : activeTab === 'chat' ? (
+          <ChatView />
+        ) : activeTab === 'settings' ? (
+          <SettingsView settings={settings} checkpoints={checkpoints} loras={loras} />
+        ) : (
+          /* ============================================================
+             GENERATE TAB — Gradio-style two-column layout
+             LEFT (5): Preview + Progress + Gallery + Prompt + Generate
+             RIGHT (2): Tabs (Setting, Models, OneButton, PowerUp, Info)
+             ============================================================ */
+          <div className="h-full flex flex-col lg:flex-row overflow-hidden">
 
-        {/* Right - Controls */}
-        <div className="flex-[2] border-l border-border overflow-y-auto p-4 space-y-4">
-          <PromptInput
-            prompt={params.prompt}
-            negativePrompt={params.negative_prompt}
-            onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
-            onNegativePromptChange={(val) => setParams((p) => ({ ...p, negative_prompt: val }))}
-            autoNegativePrompt={params.auto_negative_prompt}
-            onAutoNegativePromptChange={(val) =>
-              setParams((p) => ({ ...p, auto_negative_prompt: val }))
-            }
-          />
+            {/* ── LEFT COLUMN ── */}
+            <div className="flex-[5] flex flex-col px-4 pt-[49px] pb-[58px] gap-3 min-w-0 overflow-y-auto">
+              {/* Image preview / Inpaint editor — swaps in place */}
+              {inpaintEnabled && originalInputImage ? (
+                <InpaintCanvas
+                  sourceImage={originalInputImage}
+                  enabled={inpaintEnabled}
+                  onEnabledChange={(enabled) => {
+                    setInpaintEnabled(enabled)
+                    if (!enabled && originalInputImage) {
+                      setParams((p) => ({ ...p, input_image: originalInputImage }))
+                    }
+                  }}
+                  onMaskChange={(composite) => {
+                    if (composite) {
+                      setParams((p) => ({ ...p, input_image: composite }))
+                    } else if (originalInputImage) {
+                      setParams((p) => ({ ...p, input_image: originalInputImage }))
+                    }
+                  }}
+                />
+              ) : (
+                <ImageOutput
+                  images={displayImages}
+                  preview={progress?.preview ?? null}
+                  isGenerating={isGenerating}
+                  onInterrogateResult={(prompt) => setParams((p) => ({ ...p, prompt }))}
+                />
+              )}
 
-          <LlamaRewrite
-            prompt={params.prompt}
-            onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
-          />
+              {/* Progress bar — only during generation */}
+              {isGenerating && progress && (
+                <div className="space-y-1 px-1">
+                  <div className="h-2 w-full rounded-full bg-secondary/60 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+                      style={{ width: `${Math.max(0, Math.min(100, progress.percent))}%` }}
+                    />
+                  </div>
+                  {progress.status && (
+                    <p className="text-[13px] text-muted-foreground text-center">
+                      {progress.status}
+                    </p>
+                  )}
+                  {hint && (
+                    <p className="text-[12px] text-muted-foreground/70 text-center italic">
+                      {hint.replace(/\*\*/g, '').replace(/\*/g, '')}
+                    </p>
+                  )}
+                </div>
+              )}
 
-          <Accordion title="Evolve">
-            <EvolvePanel
-              prompt={params.prompt}
-              onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
-              onTriggerGenerate={handleGenerate}
-            />
-          </Accordion>
+              {/* Gallery strip */}
+              <Gallery images={images} onSelect={handleGallerySelect} />
 
-          <Accordion title="One Button">
-            <OneButtonPrompt
-              prompt={params.prompt}
-              onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
-              onInstantGenerate={handleGenerate}
-            />
-          </Accordion>
-
-          <GenerateButton
-            isGenerating={isGenerating}
-            progress={progress}
-            onGenerate={handleGenerate}
-            onStop={stop}
-            imageCount={params.image_number}
-            onImageCountChange={(val) => setParams((p) => ({ ...p, image_number: val }))}
-          />
-
-          <Accordion title="Model" defaultOpen>
-            <ModelSelector
-              checkpoints={checkpoints}
-              selectedModel={params.base_model_name}
-              onModelChange={(val) => setParams((p) => ({ ...p, base_model_name: val }))}
-              onRefresh={refreshModels}
-            />
-          </Accordion>
-
-          <Accordion title="LoRA">
-            <LoraSelector
-              loras={loras}
-              activeLoras={params.loras}
-              onLorasChange={(val) => setParams((p) => ({ ...p, loras: val }))}
-            />
-          </Accordion>
-
-          <Accordion title="Generation Settings">
-            <GenerationSettings
-              performancePresets={settings?.performance_presets ?? []}
-              performance={params.performance_selection}
-              onPerformanceChange={(val) =>
-                setParams((p) => ({ ...p, performance_selection: val }))
-              }
-              customSteps={params.custom_steps}
-              cfg={params.cfg}
-              samplerName={params.sampler_name}
-              scheduler={params.scheduler}
-              clipSkip={params.clip_skip}
-              samplers={settings?.samplers ?? []}
-              schedulers={settings?.schedulers ?? []}
-              onStepsChange={(val) => setParams((p) => ({ ...p, custom_steps: val }))}
-              onCfgChange={(val) => setParams((p) => ({ ...p, cfg: val }))}
-              onSamplerChange={(val) => setParams((p) => ({ ...p, sampler_name: val }))}
-              onSchedulerChange={(val) => setParams((p) => ({ ...p, scheduler: val }))}
-              onClipSkipChange={(val) => setParams((p) => ({ ...p, clip_skip: val }))}
-            />
-          </Accordion>
-
-          <Accordion title="Resolution">
-            <ResolutionPicker
-              resolutions={settings?.resolutions ?? []}
-              selected={params.aspect_ratios_selection}
-              customWidth={params.custom_width}
-              customHeight={params.custom_height}
-              onResolutionChange={(val) =>
-                setParams((p) => ({ ...p, aspect_ratios_selection: val }))
-              }
-              onWidthChange={(val) => setParams((p) => ({ ...p, custom_width: val }))}
-              onHeightChange={(val) => setParams((p) => ({ ...p, custom_height: val }))}
-            />
-          </Accordion>
-
-          <Accordion title="Style">
-            <StyleSelector
-              styles={settings?.styles ?? []}
-              selectedStyles={params.style_selection}
-              onStylesChange={(val) => setParams((p) => ({ ...p, style_selection: val }))}
-            />
-          </Accordion>
-
-          <Accordion title="PowerUp">
-            <ImageUpload
-              image={params.input_image}
-              onImageChange={(val) => {
-                setOriginalInputImage(val)
-                setParams((p) => ({ ...p, input_image: val }))
-              }}
-            />
-            <div className="mt-3">
-              <ControlNetPanel
-                presets={cnPresets}
-                types={settings?.controlnet_types ?? []}
-                upscalers={settings?.upscalers ?? []}
-                cnSelection={params.cn_selection ?? 'None'}
-                cnType={params.cn_type ?? 'Canny'}
-                cnEdgeLow={params.cn_edge_low}
-                cnEdgeHigh={params.cn_edge_high}
-                cnStart={params.cn_start}
-                cnStop={params.cn_stop}
-                cnStrength={params.cn_strength}
-                cnUpscale={params.cn_upscale}
-                onSelectionChange={(val) => setParams((p) => ({ ...p, cn_selection: val }))}
-                onTypeChange={(val) => setParams((p) => ({ ...p, cn_type: val }))}
-                onEdgeLowChange={(val) => setParams((p) => ({ ...p, cn_edge_low: val }))}
-                onEdgeHighChange={(val) => setParams((p) => ({ ...p, cn_edge_high: val }))}
-                onStartChange={(val) => setParams((p) => ({ ...p, cn_start: val }))}
-                onStopChange={(val) => setParams((p) => ({ ...p, cn_stop: val }))}
-                onStrengthChange={(val) => setParams((p) => ({ ...p, cn_strength: val }))}
-                onUpscaleChange={(val) => setParams((p) => ({ ...p, cn_upscale: val }))}
-                onPresetsUpdate={setCnPresets}
-              />
+              {/* Prompt + Generate row — matches Gradio layout */}
+              <div className="flex gap-3 items-stretch">
+                <div className="flex-[5] min-w-0 space-y-1">
+                  <PromptInput
+                    prompt={params.prompt}
+                    onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+                  />
+                  <WildcardDropdown
+                    prompt={params.prompt}
+                    onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+                  />
+                </div>
+                <div className="flex-[1] flex flex-col gap-2 min-w-[80px]">
+                  <GenerateButton
+                    isGenerating={isGenerating}
+                    progress={null}
+                    onGenerate={handleGenerate}
+                    onStop={stop}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="mt-3">
-              <InpaintCanvas
-                sourceImage={originalInputImage}
-                enabled={inpaintEnabled}
-                onEnabledChange={(enabled) => {
-                  setInpaintEnabled(enabled)
-                  if (!enabled && originalInputImage) {
-                    setParams((p) => ({ ...p, input_image: originalInputImage }))
-                  }
-                }}
-                onMaskChange={(composite) => {
-                  if (composite) {
-                    setParams((p) => ({ ...p, input_image: composite }))
-                  } else if (originalInputImage) {
-                    setParams((p) => ({ ...p, input_image: originalInputImage }))
-                  }
-                }}
-              />
-            </div>
-          </Accordion>
 
-          <Accordion title="Seed">
-            <SeedControl
-              seed={params.seed}
-              randomSeed={randomSeed}
-              onSeedChange={(val) => setParams((p) => ({ ...p, seed: val }))}
-              onRandomSeedChange={setRandomSeed}
-            />
-          </Accordion>
-        </div>
+            {/* ── RIGHT COLUMN — Tabs ── */}
+            <div className="flex-[2] flex flex-col px-4 pt-[49px] pb-[58px] min-w-0">
+              <Tabs value={activeRightTab} onValueChange={setActiveRightTab}>
+                <TabsList>
+                  <TabsTrigger value="setting">Setting</TabsTrigger>
+                  {!activePreset && <TabsTrigger value="models">Models</TabsTrigger>}
+                  <TabsTrigger value="onebutton">One Button</TabsTrigger>
+                  <TabsTrigger value="powerup">PowerUp</TabsTrigger>
+                  <TabsTrigger value="info">Info</TabsTrigger>
+                </TabsList>
+
+                {/* ── Setting Tab ── */}
+                <TabsContent value="setting">
+                  <PresetSelector
+                    activePreset={activePreset}
+                    onActivePresetChange={setActivePreset}
+                    onApplyPreset={handleApplyPreset}
+                    onClearPreset={handleClearPreset}
+                  />
+
+                  {!activePreset && (<>
+                  <GenerationSettings
+                    performancePresets={settings?.performance_presets ?? []}
+                    performance={params.performance_selection}
+                    onPerformanceChange={(val) =>
+                      setParams((p) => ({ ...p, performance_selection: val }))
+                    }
+                    customSteps={params.custom_steps}
+                    cfg={params.cfg}
+                    samplerName={params.sampler_name}
+                    scheduler={params.scheduler}
+                    clipSkip={params.clip_skip}
+                    samplers={settings?.samplers ?? []}
+                    schedulers={settings?.schedulers ?? []}
+                    onStepsChange={(val) => setParams((p) => ({ ...p, custom_steps: val }))}
+                    onCfgChange={(val) => setParams((p) => ({ ...p, cfg: val }))}
+                    onSamplerChange={(val) => setParams((p) => ({ ...p, sampler_name: val }))}
+                    onSchedulerChange={(val) => setParams((p) => ({ ...p, scheduler: val }))}
+                    onClipSkipChange={(val) => setParams((p) => ({ ...p, clip_skip: val }))}
+                  />
+
+                  <ResolutionPicker
+                    resolutions={settings?.resolutions ?? []}
+                    selected={params.aspect_ratios_selection}
+                    customWidth={params.custom_width}
+                    customHeight={params.custom_height}
+                    onResolutionChange={(val) =>
+                      setParams((p) => ({ ...p, aspect_ratios_selection: val }))
+                    }
+                    onWidthChange={(val) => setParams((p) => ({ ...p, custom_width: val }))}
+                    onHeightChange={(val) => setParams((p) => ({ ...p, custom_height: val }))}
+                  />
+                  </>)}
+
+                  <StyleSelector
+                    styles={settings?.styles ?? []}
+                    selectedStyles={params.style_selection}
+                    onStylesChange={(val) => setParams((p) => ({ ...p, style_selection: val }))}
+                    onSendToPrompt={handleSendStyleToPrompt}
+                  />
+
+                  {/* Image Number */}
+                  <div className="glass-card rounded-xl p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[13px]">Image Number</Label>
+                      <span className="text-[13px] text-muted-foreground">
+                        {params.image_number === 0 ? 'Forever' : params.image_number}
+                      </span>
+                    </div>
+                    <Slider
+                      min={0}
+                      max={50}
+                      step={1}
+                      value={params.image_number}
+                      onValueChange={(val) => setParams((p) => ({ ...p, image_number: val }))}
+                    />
+                  </div>
+
+                  {/* Negative Prompt */}
+                  <div className="glass-card rounded-xl p-3 space-y-2">
+                    <Checkbox
+                      checked={params.auto_negative_prompt}
+                      onCheckedChange={(val) =>
+                        setParams((p) => ({ ...p, auto_negative_prompt: val as boolean }))
+                      }
+                      label="Auto negative prompt"
+                    />
+                    <Textarea
+                      rows={3}
+                      placeholder="Negative prompt..."
+                      value={params.negative_prompt}
+                      onChange={(e) => setParams((p) => ({ ...p, negative_prompt: e.target.value }))}
+                      disabled={params.auto_negative_prompt}
+                      className="resize-none"
+                    />
+                  </div>
+
+                  {/* Seed */}
+                  <SeedControl
+                    seed={params.seed}
+                    randomSeed={randomSeed}
+                    onSeedChange={(val) => setParams((p) => ({ ...p, seed: val }))}
+                    onRandomSeedChange={setRandomSeed}
+                  />
+                </TabsContent>
+
+                {/* ── Models Tab (nested sub-tabs) ── */}
+                <TabsContent value="models">
+                  <Tabs value={activeModelTab} onValueChange={setActiveModelTab}>
+                    <TabsList>
+                      <TabsTrigger value="model">Model</TabsTrigger>
+                      <TabsTrigger value="loras">LoRAs</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="model">
+                      <ModelSelector
+                        checkpoints={checkpoints}
+                        selectedModel={params.base_model_name}
+                        onModelChange={(val) => setParams((p) => ({ ...p, base_model_name: val }))}
+                        onRefresh={refreshModels}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="loras">
+                      <LoraSelector
+                        loras={loras}
+                        activeLoras={params.loras}
+                        onLorasChange={(val) => setParams((p) => ({ ...p, loras: val }))}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </TabsContent>
+
+                {/* ── One Button Tab ── */}
+                <TabsContent value="onebutton">
+                  <OneButtonPrompt
+                    prompt={params.prompt}
+                    onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+                    onInstantGenerate={handleGenerate}
+                  />
+                </TabsContent>
+
+                {/* ── PowerUp Tab ── */}
+                <TabsContent value="powerup">
+                  <ControlNetPanel
+                    presets={cnPresets}
+                    types={settings?.controlnet_types ?? []}
+                    upscalers={settings?.upscalers ?? []}
+                    cnSelection={params.cn_selection ?? 'None'}
+                    cnType={params.cn_type ?? 'Canny'}
+                    cnEdgeLow={params.cn_edge_low}
+                    cnEdgeHigh={params.cn_edge_high}
+                    cnStart={params.cn_start}
+                    cnStop={params.cn_stop}
+                    cnStrength={params.cn_strength}
+                    cnUpscale={params.cn_upscale}
+                    onSelectionChange={(val) => setParams((p) => ({ ...p, cn_selection: val }))}
+                    onTypeChange={(val) => setParams((p) => ({ ...p, cn_type: val }))}
+                    onEdgeLowChange={(val) => setParams((p) => ({ ...p, cn_edge_low: val }))}
+                    onEdgeHighChange={(val) => setParams((p) => ({ ...p, cn_edge_high: val }))}
+                    onStartChange={(val) => setParams((p) => ({ ...p, cn_start: val }))}
+                    onStopChange={(val) => setParams((p) => ({ ...p, cn_stop: val }))}
+                    onStrengthChange={(val) => setParams((p) => ({ ...p, cn_strength: val }))}
+                    onUpscaleChange={(val) => setParams((p) => ({ ...p, cn_upscale: val }))}
+                    onPresetsUpdate={setCnPresets}
+                  />
+
+                  <ImageUpload
+                    image={params.input_image}
+                    onImageChange={(val) => {
+                      setOriginalInputImage(val)
+                      setParams((p) => ({ ...p, input_image: val }))
+                    }}
+                  />
+
+                  {/* Inpaint toggle */}
+                  <div className="glass-card rounded-xl p-3">
+                    <Checkbox
+                      checked={inpaintEnabled}
+                      onCheckedChange={(val) => {
+                        const enabled = val as boolean
+                        setInpaintEnabled(enabled)
+                        if (!enabled && originalInputImage) {
+                          setParams((p) => ({ ...p, input_image: originalInputImage }))
+                        }
+                      }}
+                      label="Inpainting"
+                      disabled={!originalInputImage}
+                    />
+                  </div>
+
+                  <Accordion title="Evolve">
+                    <EvolvePanel
+                      prompt={params.prompt}
+                      onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+                      onTriggerGenerate={handleGenerate}
+                    />
+                  </Accordion>
+
+                  <LlamaRewrite
+                    prompt={params.prompt}
+                    onPromptChange={(val) => setParams((p) => ({ ...p, prompt: val }))}
+                  />
+                </TabsContent>
+
+                {/* ── Info Tab ── */}
+                <TabsContent value="info">
+                  <MetadataViewer imageUrl={selectedImage} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        )}
       </div>
-      )}
+
+      {/* iOS Tab Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-bar glass-bar-edge-top flex items-center justify-around pb-[env(safe-area-inset-bottom,0px)]">
+        <TabBarItem
+          label="Generate"
+          active={activeTab === 'generate'}
+          onClick={() => setActiveTab('generate')}
+        />
+        <TabBarItem
+          label="Browse"
+          active={activeTab === 'browse'}
+          onClick={() => setActiveTab('browse')}
+        />
+        <TabBarItem
+          label="Chat"
+          active={activeTab === 'chat'}
+          onClick={() => setActiveTab('chat')}
+        />
+        <TabBarItem
+          label="Settings"
+          active={activeTab === 'settings'}
+          onClick={() => setActiveTab('settings')}
+        />
+      </nav>
     </div>
   )
 }

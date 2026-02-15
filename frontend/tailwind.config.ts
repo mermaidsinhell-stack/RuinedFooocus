@@ -5,6 +5,10 @@ const config: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        'geo-sans': ['Jost', 'sans-serif'],
+        'serif-display': ['"Playfair Display"', 'serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

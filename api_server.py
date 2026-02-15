@@ -26,6 +26,11 @@ from api.routes.obp import router as obp_router
 from api.routes.browser import router as browser_router
 from api.routes.evolve import router as evolve_router
 from api.routes.llama import router as llama_router
+from api.routes.presets import router as presets_router
+from api.routes.wildcards import router as wildcards_router
+from api.routes.interrogate import router as interrogate_router
+from api.routes.hints import router as hints_router
+from api.routes.styles import router as styles_router
 from modules.imagebrowser import ImageBrowser
 
 app = FastAPI(
@@ -58,10 +63,20 @@ app.include_router(obp_router, prefix="/api")
 app.include_router(browser_router, prefix="/api")
 app.include_router(evolve_router, prefix="/api")
 app.include_router(llama_router, prefix="/api")
+app.include_router(presets_router, prefix="/api")
+app.include_router(wildcards_router, prefix="/api")
+app.include_router(interrogate_router, prefix="/api")
+app.include_router(hints_router, prefix="/api")
+app.include_router(styles_router, prefix="/api")
 
 # Ensure browser singleton is available for the API
 if "browser" not in shared.shared_cache:
     shared.shared_cache["browser"] = ImageBrowser()
+
+# Initialize wildcards if not already loaded
+if shared.wildcards is None:
+    from modules.util import get_wildcard_files
+    shared.wildcards = get_wildcard_files()
 
 # ---------------------------------------------------------------------------
 # Static file mounts -- order matters: more specific paths first

@@ -53,9 +53,9 @@ export function ImageUpload({ image, onImageChange }: ImageUploadProps) {
 
   return (
     <div className="space-y-1.5">
-      <Label>Input Image</Label>
+      <Label className="text-[15px]">Input Image</Label>
       {image ? (
-        <div className="relative rounded-md border border-border overflow-hidden">
+        <div className="relative rounded-xl glass-card overflow-hidden">
           <img
             src={`data:image/png;base64,${image}`}
             alt="Input"
@@ -80,9 +80,9 @@ export function ImageUpload({ image, onImageChange }: ImageUploadProps) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           className={cn(
-            "flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border p-6 cursor-pointer transition-colors",
-            "hover:border-primary/50 hover:bg-accent/30",
-            dragging && "border-primary bg-accent/50"
+            "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 p-6 cursor-pointer transition-colors",
+            "hover:border-primary/50 hover:bg-primary/5",
+            dragging && "border-primary bg-primary/10"
           )}
         >
           <Upload className="h-6 w-6 text-muted-foreground" />

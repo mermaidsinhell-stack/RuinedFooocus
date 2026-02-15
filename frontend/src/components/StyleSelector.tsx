@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
@@ -9,12 +10,14 @@ export interface StyleSelectorProps {
   styles: StyleInfo[]
   selectedStyles: string[]
   onStylesChange: (styles: string[]) => void
+  onSendToPrompt?: () => void
 }
 
 export function StyleSelector({
   styles,
   selectedStyles,
   onStylesChange,
+  onSendToPrompt,
 }: StyleSelectorProps) {
   const [filter, setFilter] = React.useState("")
 
@@ -43,7 +46,19 @@ export function StyleSelector({
 
   return (
     <div className="space-y-3">
-      <Label>Styles</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-[15px]">Styles</Label>
+        {selectedStyles.length > 0 && onSendToPrompt && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-[12px]"
+            onClick={onSendToPrompt}
+          >
+            Send to Prompt
+          </Button>
+        )}
+      </div>
 
       {selectedStyles.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -81,22 +96,22 @@ export function StyleSelector({
         onChange={(e) => setFilter(e.target.value)}
       />
 
-      <div className="max-h-48 overflow-y-auto rounded-md border border-border">
+      <div className="max-h-48 overflow-y-auto glass-card rounded-xl">
         {filtered.map((style) => (
           <button
             key={style.name}
             type="button"
             onClick={() => toggleStyle(style.name)}
             className={cn(
-              "flex w-full items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
+              "flex w-full items-center gap-2 px-3 py-2.5 text-[15px] text-left transition-colors",
               "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-              "border-b border-border last:border-b-0",
-              selectedSet.has(style.name) && "bg-accent/30 text-primary"
+              "border-b border-border/40 last:border-b-0",
+              selectedSet.has(style.name) && "bg-primary/10 text-primary"
             )}
           >
             <span
               className={cn(
-                "h-4 w-4 shrink-0 rounded-sm border border-border flex items-center justify-center",
+                "h-4 w-4 shrink-0 rounded-full border border-muted-foreground/30 flex items-center justify-center",
                 selectedSet.has(style.name) && "bg-primary border-primary"
               )}
             >

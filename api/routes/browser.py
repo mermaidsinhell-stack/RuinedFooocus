@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
+from PIL import Image
 
 import shared
 from modules.imagebrowser import ImageBrowser, format_metadata, format_metadata_string
@@ -80,6 +81,49 @@ async def get_metadata(fullpath: str = Query(...)):
     raw = json.loads(row[0])
     formatted = format_metadata(raw)
     formatted_string = format_metadata_string(raw)
+
+    return ImageMetadataResponse(
+        raw=raw,
+        formatted=formatted,
+        formatted_string=formatted_string,
+    )
+
+
+@router.get("/browser/metadata-by-url")
+async def get_metadata_by_url(url: str = Query(...)):
+    """Return metadata for an image given its URL path (e.g., /api/outputs/date/file.png).
+    Reads directly from the PNG file rather than the database."""
+    outputs_dir = str(shared.path_manager.model_paths["temp_outputs_path"])
+
+    # Strip the /api/outputs/ prefix to get the relative path
+    rel = url
+    for prefix in ("/api/outputs/", "api/outputs/"):
+        if rel.startswith(prefix):
+            rel = rel[len(prefix):]
+            break
+
+    filepath = Path(outputs_dir) / rel
+    resolved = filepath.resolve()
+
+    # Security: ensure the resolved path is within the outputs directory
+    if not str(resolved).startswith(str(Path(outputs_dir).resolve())):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not resolved.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    try:
+        im = Image.open(resolved)
+        raw_str = im.info.get("parameters", "")
+        if raw_str:
+            raw = json.loads(raw_str)
+        else:
+            raw = {}
+    except Exception:
+        raw = {}
+
+    formatted = format_metadata(raw) if raw else {}
+    formatted_string = format_metadata_string(raw) if raw else ""
 
     return ImageMetadataResponse(
         raw=raw,

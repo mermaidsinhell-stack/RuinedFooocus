@@ -48,11 +48,11 @@ export function ModelSelector({
             type="button"
             onClick={() => onModelChange(model.name)}
             className={cn(
-              "flex flex-col items-center gap-1 p-2 rounded-md border text-left transition-colors",
-              "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+              "flex flex-col items-center gap-1 p-2 rounded-xl glass-card text-left transition-all",
+              "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               selectedModel === model.name
-                ? "border-primary bg-accent/30"
-                : "border-border"
+                ? "ring-2 ring-primary bg-accent/30"
+                : ""
             )}
           >
             {model.thumbnail ? (
@@ -66,13 +66,13 @@ export function ModelSelector({
                 <span className="text-xs text-muted-foreground">No preview</span>
               </div>
             )}
-            <span className="text-xs text-foreground truncate w-full text-center">
+            <span className="text-[13px] text-foreground truncate w-full text-center">
               {model.name}
             </span>
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className="col-span-3 text-sm text-muted-foreground text-center py-4">
+          <p className="col-span-3 text-[15px] text-muted-foreground text-center py-4">
             No models found
           </p>
         )}

@@ -35,7 +35,7 @@ export function ResolutionPicker({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label>Resolution</Label>
+        <Label className="text-[15px]">Resolution</Label>
         <Select
           value={selected}
           onValueChange={onResolutionChange}
@@ -45,11 +45,11 @@ export function ResolutionPicker({
       </div>
 
       {isCustom && (
-        <div className="space-y-3 rounded-md border border-border p-3">
+        <div className="space-y-3 bg-background rounded-xl p-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label>Width</Label>
-              <span className="text-sm text-muted-foreground tabular-nums">
+              <Label className="text-[15px]">Width</Label>
+              <span className="text-[13px] text-muted-foreground tabular-nums">
                 {customWidth}px
               </span>
             </div>
@@ -64,8 +64,8 @@ export function ResolutionPicker({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label>Height</Label>
-              <span className="text-sm text-muted-foreground tabular-nums">
+              <Label className="text-[15px]">Height</Label>
+              <span className="text-[13px] text-muted-foreground tabular-nums">
                 {customHeight}px
               </span>
             </div>

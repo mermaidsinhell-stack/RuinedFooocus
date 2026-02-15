@@ -236,6 +236,37 @@ export interface ChatStreamMessage {
   message?: string
 }
 
+// ---------------------------------------------------------------------------
+// Presets
+// ---------------------------------------------------------------------------
+
+export interface PresetMetadata {
+  Prompt?: string
+  Negative?: string
+  steps?: number
+  cfg?: number
+  width?: number
+  height?: number
+  seed?: number
+  sampler_name?: string
+  scheduler?: string
+  base_model_name?: string
+  base_model_hash?: string
+  loras?: [string, string][]
+  clip_skip?: number
+  software?: string
+}
+
+export interface PresetInfo {
+  name: string
+  filename: string
+  metadata: PresetMetadata | null
+}
+
+export interface PresetsResponse {
+  presets: PresetInfo[]
+}
+
 export interface PathsData {
   [key: string]: string | string[]
 }

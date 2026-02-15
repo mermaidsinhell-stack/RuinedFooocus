@@ -22,8 +22,8 @@ export function Gallery({ images, onSelect }: GalleryProps) {
             type="button"
             onClick={() => onSelect(url)}
             className={cn(
-              "flex-shrink-0 h-16 w-16 rounded-md overflow-hidden border border-border",
-              "transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              "flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden shadow-sm",
+              "transition-all hover:ring-2 hover:ring-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             )}
           >
             <img

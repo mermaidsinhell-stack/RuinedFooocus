@@ -44,7 +44,7 @@ export function EvolvePanel({ prompt, onPromptChange, onTriggerGenerate }: Evolv
   return (
     <div className="space-y-3">
       {/* 3x3 Grid */}
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-3 gap-1.5">
         {Array.from({ length: 9 }, (_, i) => (
           <Button
             key={i + 1}
@@ -52,7 +52,7 @@ export function EvolvePanel({ prompt, onPromptChange, onTriggerGenerate }: Evolv
             size="sm"
             disabled={loading || !prompt.trim()}
             onClick={() => handleClick(i + 1)}
-            className="text-xs h-8"
+            className="text-xs h-8 rounded-lg"
           >
             {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : i + 1}
           </Button>
@@ -61,7 +61,7 @@ export function EvolvePanel({ prompt, onPromptChange, onTriggerGenerate }: Evolv
 
       {/* Mode */}
       <div className="space-y-1">
-        <Label className="text-xs">Mode</Label>
+        <Label className="text-[13px]">Mode</Label>
         <Select
           value={mode}
           onValueChange={setMode}
@@ -73,8 +73,8 @@ export function EvolvePanel({ prompt, onPromptChange, onTriggerGenerate }: Evolv
       {/* Strength */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label className="text-xs">Strength</Label>
-          <span className="text-xs text-muted-foreground">{strength}%</span>
+          <Label className="text-[13px]">Strength</Label>
+          <span className="text-[13px] text-muted-foreground">{strength}%</span>
         </div>
         <Slider
           min={0}

@@ -18,7 +18,7 @@ export function SeedControl({
 }: SeedControlProps) {
   return (
     <div className="space-y-3">
-      <Label>Seed</Label>
+      <Label className="text-[15px]">Seed</Label>
       <Checkbox
         checked={randomSeed}
         onCheckedChange={onRandomSeedChange}

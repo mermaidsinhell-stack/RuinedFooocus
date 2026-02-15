@@ -181,14 +181,14 @@ export function InpaintCanvas({
       {enabled && imgSize && (
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <Label className="shrink-0">Brush</Label>
+            <Label className="text-[15px] shrink-0">Brush</Label>
             <Slider min={5} max={100} step={1} value={brushSize} onValueChange={setBrushSize} />
-            <span className="text-sm text-muted-foreground tabular-nums w-8">{brushSize}</span>
-            <Button variant="outline" size="sm" onClick={handleClear}>Clear</Button>
+            <span className="text-[13px] text-muted-foreground tabular-nums w-8">{brushSize}</span>
+            <Button variant="outline" size="sm" className="rounded-lg" onClick={handleClear}>Clear</Button>
           </div>
           <div
             ref={containerRef}
-            className="relative rounded-md border border-border overflow-hidden inline-block"
+            className="relative rounded-xl shadow-sm overflow-hidden inline-block"
             style={{ width: imgSize.w, height: imgSize.h }}
           >
             <canvas

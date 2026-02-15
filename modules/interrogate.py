@@ -53,7 +53,7 @@ def florence_look(image, prompt, gr):
         imports = get_imports(filename)
         try:
             imports.remove("flash_attn")
-        except:
+        except ValueError:
             pass
         return imports
 
@@ -108,8 +108,8 @@ def look(image, prompt, gr):
             info = image.info
             params = info.get("parameters", "")
             text = json.dumps(json.loads(params))
-        except:
-            # Default interrogator
+        except (json.JSONDecodeError, KeyError, AttributeError, TypeError):
+            # No valid JSON metadata — fall back to default interrogator
             interrogator = settings.default_settings.get("interrogator", "florence")
             text = looks[interrogator](image, prompt, gr)
 
